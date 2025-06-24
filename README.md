@@ -5,7 +5,7 @@
 
 Um bot de Discord robusto e customizável para monitorar múltiplos servidores de Minecraft em tempo real, registrando atividade de jogadores e enviando relatórios detalhados para canais específicos.
 
-![Exemplo do Embed do Bot](https://i.imgur.com/link_para_sua_imagem.png)  
+![Exemplo do Embed do Bot](https://imgur.com/a/jYe7lDA)  
 
 ##  sobre o Projeto
 
