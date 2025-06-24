@@ -35,7 +35,7 @@ Para rodar uma instância própria deste bot, siga os passos abaixo.
 
 1.  **Clone o repositório:**
     ```bash
-    git clone [https://github.com/nakomaNS/Blockspy.git](https://github.com/nakomaNS/Blockspy.git)
+    git clone https://github.com/nakomaNS/Blockspy.git
     cd Blockspy
     ```
 
