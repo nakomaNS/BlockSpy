@@ -1,5 +1,6 @@
 # Monitor de Servidores de Minecraft para Discord
 
+![Status](https://img.shields.io/badge/status-beta%20v1.0-orange)
 ![Licença](https://img.shields.io/github/license/seu-usuario/seu-repositorio?style=for-the-badge)
 ![Linguagem](https://img.shields.io/github/languages/top/seu-usuario/seu-repositorio?style=for-the-badge)
 
@@ -29,15 +30,16 @@ Para rodar uma instância própria deste bot, siga os passos abaixo.
 ### Pré-requisitos
 
 * Python 3.8 ou superior
-* Um servidor de banco de dados PostgreSQL ativo
 * Uma conta de Bot no [Portal de Desenvolvedores do Discord](https://discord.com/developers/applications)
+
+(É isso! Nenhuma instalação de banco de dados é necessária, pois o bot usa SQLite, que já vem com o Python.)
 
 ### Instalação
 
 1.  **Clone o repositório:**
     ```bash
-    git clone [https://github.com/seu-usuario/seu-repositorio.git](https://github.com/seu-usuario/seu-repositorio.git)
-    cd seu-repositorio
+    git clone [https://github.com/seu-usuario/Blockspy.git](https://github.com/seu-usuario/Blockspy.git)
+    cd Blockspy
     ```
 
 2.  **Crie e ative um ambiente virtual (altamente recomendado):**
@@ -56,45 +58,12 @@ Para rodar uma instância própria deste bot, siga os passos abaixo.
     pip install -r requirements.txt
     ```
 
-4.  **Configure o Banco de Dados:**
-    * No seu servidor PostgreSQL, crie um banco de dados e um usuário para o bot. Garanta que o usuário tenha permissões para criar tabelas e ler/escrever dados nesse banco.
-    * O bot criará as tabelas `servidores` e `log_jogadores` automaticamente na primeira vez que for executado.
+4.  **Configure o Bot:**
+    * O bot irá te guiar na primeira execução para criar o arquivo `.env` com o seu token.
+    * Depois, edite o arquivo `config.py` com os IDs dos seus canais do Discord e o nome do cargo de administrador.
 
-5.  **Configure as Variáveis de Ambiente:**
-    * Crie um arquivo chamado `.env` na raiz do projeto.
-    * Preencha com seus dados sensíveis. Ele deve se parecer com isto:
-      ```env
-      # Arquivo .env
-      DISCORD_TOKEN="O_TOKEN_DO_SEU_BOT_AQUI"
-      DB_USER="seu_usuario_db"
-      DB_PASSWORD="sua_senha_db"
-      DB_DATABASE="nome_do_seu_db"
-      DB_HOST="localhost"
-      DB_PORT="5432"
-      ```
-
-6.  **Configure o Bot:**
-    * Copie o arquivo `config_template.py` e renomeie a cópia para `config.py`.
-    * Edite o `config.py` com os IDs dos seus canais do Discord e o nome exato do cargo que terá permissão para usar os comandos.
-
-7.  **Rode o bot:**
+5.  **Rode o bot:**
     ```bash
     python bot.py
     ```
-    O bot irá iniciar e começar os ciclos de monitoramento. Verifique o arquivo `discord_bot.log` para acompanhar a atividade.
-
-## Comandos
-
-Os seguintes comandos estão disponíveis para usuários com o cargo definido no `config.py`:
-
-* `!add <ip:porta>`: Adiciona e ativa um novo servidor para monitoramento.
-* `!pause <ip:porta>`: Pausa o monitoramento de um servidor.
-* `!list_servers`: Lista todos os servidores sendo monitorados e seu status (Ativos/Pausados).
-* *(Adicione aqui os outros comandos como `addlist` e `processar_lista`)*
-
-## Licença
-
-Distribuído sob a Licença MIT. Veja o arquivo `LICENSE` para mais informações.
-
----
-Feito com ❤️ por [Seu Nome ou Nick](https://github.com/seu-usuario)
+    Na primeira vez, ele pedirá seu token. Depois disso, ele iniciará normalmente. O arquivo do banco de dados (`database.db`) será criado automaticamente na pasta.
