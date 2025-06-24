@@ -18,8 +18,8 @@ Este bot foi desenvolvido para administradores de servidores e comunidades que p
 * 📊 **Relatórios Detalhados:** Envia um embed rico no Discord com informações como ping, versão, número de jogadores, tipo de servidor (Original/Pirata) e localização geográfica.
 * ✍️ **Log de Jogadores:** Registra os nicks de todos os jogadores que entram nos servidores, guardando a data e a hora da última vez que foram vistos.
 * 🔀 **Roteamento por Versão:** Capacidade de enviar relatórios para canais diferentes com base na versão do servidor de Minecraft.
-* 🔒 **Seguro e Configurável:** Usa variáveis de ambiente para dados sensíveis e um arquivo de configuração central para fácil customização de IDs de canais, tempos e permissões.
-* ⚙️ **Estrutura Profissional:** Organizado em Cogs (`discord.py`) para fácil manutenção e escalabilidade.
+* 🔒 **Seguro e Configurável:** Arquivo de configuração central para fácil customização de IDs de canais, tempos e permissões.
+* ⚙️ **Estrutura Profissional:** Fácil manutenção e escalabilidade.
 
 ## Começando
 
@@ -30,7 +30,6 @@ Para rodar uma instância própria deste bot, siga os passos abaixo.
 * Python 3.8 ou superior
 * Uma conta de Bot no [Portal de Desenvolvedores do Discord](https://discord.com/developers/applications)
 
-(É isso! Nenhuma instalação de banco de dados é necessária, pois o bot usa SQLite, que já vem com o Python.)
 
 ### Instalação
 
