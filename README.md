@@ -7,9 +7,9 @@ Um bot de Discord robusto e customizável para monitorar múltiplos servidores d
 
 ![Exemplo do Embed do Bot](https://i.imgur.com/RLG4OiZ.png)  
 
-##  sobre o Projeto
+##  Sobre o Projeto
 
-Este bot foi desenvolvido para administradores de servidores e comunidades que precisam de uma forma automatizada e centralizada para verificar o status de seus servidores de Minecraft. Ele utiliza programação assíncrona, se conecta a um banco de dados PostgreSQL para persistência de dados e é totalmente configurável através de arquivos simples, permitindo uma fácil adaptação para diferentes necessidades.
+Este bot foi desenvolvido para administradores de servidores e comunidades que precisam de uma forma automatizada e centralizada para verificar o status de servidores de Minecraft. Ele utiliza programação assíncrona, se conecta a um banco de dados SQLite para persistência de dados e é totalmente configurável através de arquivos simples, permitindo uma fácil adaptação para diferentes necessidades.
 
 ### Principais Funcionalidades
 
