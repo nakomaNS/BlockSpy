@@ -1,7 +1,7 @@
 # Monitor de Servidores de Minecraft para Discord
 
-![Status](https://img.shields.io/badge/status-beta%20v1.0-orange)
-![Licença](https://img.shields.io/github/license/seu-usuario/seu-repositorio?style=for-the-badge)
+![Licença](https://img.shields.io/github/license/nakomaNS/blockspy?style=for-the-badge)
+![Linguagem Principal](https://img.shields.io/github/languages/top/nakomaNS/blockspy?style=for-the-badge)
 ![Linguagem](https://img.shields.io/github/languages/top/seu-usuario/seu-repositorio?style=for-the-badge)
 
 Um bot de Discord robusto e customizável para monitorar múltiplos servidores de Minecraft em tempo real, registrando atividade de jogadores e enviando relatórios detalhados para canais específicos.
