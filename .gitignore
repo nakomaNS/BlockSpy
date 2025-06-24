@@ -1,0 +1,39 @@
+# .gitignore
+
+# Arquivos de Segredos e Configuração Pessoal
+# NUNCA envie estes arquivos para o GitHub!
+.env
+
+# Arquivo do Banco de Dados SQLite
+# Contém os dados gerados pelo SEU bot, não faz parte do código fonte.
+*.db
+*.db-journal
+
+# Arquivos de Log gerados pelo bot
+*.log
+logs/
+
+# Cache e binários do Python
+# São arquivos temporários que o Python cria para otimização
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Pastas de Ambiente Virtual
+# Cada desenvolvedor cria a sua própria
+venv/
+.venv/
+env/
+ENV/
+.env/
+
+# Arquivos de configuração de IDEs e Editores
+# Evita conflitos de configuração de editor entre desenvolvedores
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
