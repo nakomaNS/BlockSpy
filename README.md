@@ -19,7 +19,7 @@ Este bot foi desenvolvido para administradores de servidores e comunidades que p
 * ✍️ **Log de Jogadores:** Registra os nicks de todos os jogadores que entram nos servidores, guardando a data e a hora da última vez que foram vistos.
 * 🔀 **Roteamento por Versão:** Capacidade de enviar relatórios para canais diferentes com base na versão do servidor de Minecraft.
 * 🔒 **Seguro e Configurável:** Arquivo de configuração central para fácil customização de IDs de canais, tempos e permissões.
-* ⚙️ **Estrutura Profissional:** Fácil manutenção e escalabilidade.
+* ⚙️ **Estrutura:** Fácil manutenção e escalabilidade.
 
 ## Começando
 
