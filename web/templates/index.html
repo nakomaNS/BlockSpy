@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BlockSpy</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="icon" href="/static/favicon.png" type="image/png">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/hammer.js/2.0.8/hammer.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-zoom/1.2.1/chartjs-plugin-zoom.min.js"></script>
+</head>
+<body>
+    <video autoplay muted loop class="video-background" id="video-dark">
+        <source src="/static/background-dark.mp4" type="video/mp4">
+    </video>
+    <video autoplay muted loop class="video-background" id="video-light">
+        <source src="/static/background-light.mp4" type="video/mp4">
+    </video>
+
+    <div class="glass-container">
+        <aside class="sidebar">
+            <div class="logo">
+    <img src="/static/icon.png" alt="BlockSpy Logo" class="logo-icon">
+    <span>BlockSpy</span>
+</div>
+            <nav>
+                <a href="#" id="nav-dashboard" class="nav-button active">
+                    <span class="icon">📊</span> Dashboard
+                </a>
+                <a href="#" id="nav-add-server" class="nav-button">
+                    <span class="icon">➕</span> Add Server
+                </a>
+                <a href="#" id="nav-settings" class="nav-button">
+                    <span class="icon">⚙️</span> Settings
+                </a>
+            </nav>
+        </aside>
+
+        <main class="content-pane">
+            <div id="dashboard-view">
+                <h1>Dashboard</h1>
+                <div class="dashboard-controls">
+                    <div class="search-bar">
+                        <input type="text" id="search-input" placeholder="Pesquisar por nome ou IP...">
+                    </div>
+                    <div class="sort-buttons">
+                        <button id="sort-by-name">Ordenar por Nome</button>
+                        <button id="sort-by-players">Ordenar por Jogadores</button>
+                    </div>
+                </div>
+                <div id="server-list" class="server-grid"></div>
+            </div>
+
+            <div id="add-server-view" style="display: none;">
+                <h1>Add New Server</h1>
+                <div class="add-server-options">
+                    <div class="add-option-card">
+                        <h2>Adicionar um Servidor</h2>
+                        <form id="single-add-form">
+                            <div class="form-group">
+                                <label for="single-ip-input">Endereço do Servidor (IP ou domínio)</label>
+                                <input type="text" id="single-ip-input" required placeholder="ex: hypixel.net">
+                            </div>
+                            <div class="form-group">
+                                <button type="submit">Adicionar</button>
+                            </div>
+                        </form>
+                        <div id="single-add-log"></div>
+                    </div>
+                    <div class="add-option-card">
+                        <h2>Adicionar em Massa</h2>
+                        <form id="bulk-add-form">
+                             <div class="form-group">
+                                <label for="bulk-ips-input">Lista de Endereços (um por linha)</label>
+                                <textarea id="bulk-ips-input" rows="5" placeholder="hypixel.net&#10;redesky.com"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <button type="submit">Adicionar Lista</button>
+                            </div>
+                        </form>
+                        <div id="bulk-log"></div>
+                    </div>
+                    <div class="add-option-card">
+                        <h2>Importar de Arquivo (.txt)</h2>
+                        <div class="file-upload-area">
+                            <label for="file-import-input">Clique ou arraste um arquivo .txt aqui</label>
+                            <input type="file" id="file-import-input" accept=".txt">
+                        </div>
+                        <div id="file-log"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="settings-view" style="display: none;">
+                <h1>Settings</h1>
+                <div class="settings-section">
+                    <h2>Aparência</h2>
+                    <div class="theme-switch-wrapper">
+                        <span>Modo Escuro</span>
+                        <label class="theme-switch">
+                            <input type="checkbox" id="theme-toggle">
+                            <span class="slider"></span>
+                        </label>
+                        <span>Modo Claro</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="details-view" style="display: none;">
+                <div class="details-header">
+                    <div class="details-title-group">
+                        <h1 id="details-server-name">Carregando...</h1>
+                        <p id="details-server-ip" class="details-ip-subtitle"></p>
+            </div>
+                    <div class="details-actions-group">
+                    <div class="actions-menu-container">
+                    <button id="export-actions-btn" class="card-action-btn" title="Salvar ou Exportar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                    </button>
+                    <div id="export-dropdown-menu" class="dropdown-menu hidden">
+                    <a href="#" id="save-chart-image-btn">🖼️ Salvar como Imagem</a>
+                    <a href="#" id="export-chart-csv-btn">📄 Exportar Dados (.csv)</a>
+            </div>
+    </div>
+    <button id="back-to-dashboard" class="back-button">&larr; Voltar ao Dashboard</button>
+</div>
+
+                </div>
+                <div class="details-grid">
+
+<div class="details-chart-container">
+    <div class="chart-header">
+        <h2>Análise de Atividade</h2>
+        <div class="chart-period-selector">
+            <button class="period-btn" data-hours="1">1h</button>
+            <button class="period-btn" data-hours="6">6h</button>
+            <button class="period-btn active" data-hours="24">24h</button>
+            <button class="period-btn" data-hours="72">3d</button>
+            <button class="period-btn" data-hours="168">7d</button>
+        </div>
+    </div>
+    
+    <div id="details-legend-container" class="custom-legend"></div>
+
+    <div class="chart-controls-footer">
+        <button id="contextual-reset-zoom-btn" class="back-button hidden">Resetar Zoom</button>
+    </div>
+
+    <div class="chart-wrapper">
+        <canvas id="history-chart"></canvas>
+    </div>
+</div>
+
+    <div class="console-timeline-wrapper">
+        <div class="card-console">
+            <h2>🔴 Console ao Vivo</h2>
+            <div class="console-overlay" id="console-overlay">
+                <div class="overlay-content">
+                    <p>A configuração RCON é necessária para usar esta funcionalidade.</p>
+                    <button id="console-configure-btn" class="back-button">Configurar Agora</button>
+                </div>
+            </div>
+            <div class="console-output" id="console-log-display"></div>
+            <div class="console-input-area">
+                <span class="console-prompt">&gt;</span>
+                <input type="text" id="rcon-command-input" placeholder="Digite um comando e pressione Enter...">
+            </div>
+        </div>
+        <div class="card-timeline">
+            <h2>Timeline</h2>
+            <div id="timeline-container" class="timeline-body">
+                </div>
+        </div>
+    </div>
+
+    <div class="details-players-wrapper">
+        <div class="details-players-container">
+            <h2 id="details-player-count">Jogadores Online</h2>
+            <ul id="details-player-list">
+                <li>Carregando...</li>
+            </ul>
+        </div>
+        <div class="details-players-container">
+            <h2>Vistos por Último</h2>
+            <ul id="details-offline-player-list">
+                <li>Carregando...</li>
+            </ul>
+        </div>
+        <div class="details-players-container" id="details-stats-card">
+            <h2>Estatísticas (24h)</h2>
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <span class="stat-label">📊 Uptime</span>
+                    <span class="stat-value" id="stat-uptime">--</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">🏆 Pico de Jogadores</span>
+                    <span class="stat-value" id="stat-peak">--</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">⚖️ Média de Jogadores</span>
+                    <span class="stat-value" id="stat-avg">--</span>
+                </div>
+            </div>
+        </div>
+        <div class="details-players-container" id="heatmap-card">
+            <h2>Heatmap</h2>
+            <div id="cal-heatmap"></div>
+        </div>
+    </div>
+
+</div>
+
+                <div class="content-spacer"></div>
+            </div>
+        </main>
+    </div>
+
+    <div id="custom-modal" class="modal-template">
+        <div class="modal-content">
+            <div class="modal-header"><h2 id="modal-title"></h2></div>
+            <div class="modal-body"><p id="modal-message"></p></div>
+            <div class="modal-footer">
+                <button id="modal-btn-cancel" class="cancel-btn">Cancelar</button>
+                <button id="modal-btn-confirm" class="confirm-btn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="edit-server-modal" class="modal-template">
+        <div class="modal-content">
+            <form id="edit-server-form">
+                <div class="modal-header">
+                    <h2>Editar Servidor</h2>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="edit-name-input">Nome Customizado</label>
+                        <input type="text" id="edit-name-input" placeholder="Deixe em branco para usar o nome padrão">
+                    </div>
+                    <div class="form-group">
+                        <label for="edit-ip-input">Endereço do Servidor</label>
+                        <input type="text" id="edit-ip-input" required>
+                        <small>Aviso: Alterar o endereço apagará o histórico deste servidor.</small>
+                    </div>
+                    <div class="rcon-settings-group">
+    <div class="rcon-settings-header">
+        <h4>Configurações RCON (Opcional)</h4>
+        <button type="button" class="card-action-btn" id="unlock-rcon-btn" title="Editar Configurações RCON">
+            </button>
+    </div>
+    <div class="form-group">
+        <label for="edit-rcon-port-input">Porta RCON</label>
+        <input type="number" id="edit-rcon-port-input" placeholder="Ex: 25575">
+    </div>
+    <div class="form-group">
+        <label for="edit-rcon-pass-input">Senha RCON</label>
+        <input type="password" id="edit-rcon-pass-input" placeholder="Sua senha RCON secreta">
+    </div>
+</div>
+                    <div class="form-group">
+                        <label for="edit-path-input">Caminho da Pasta do Servidor (Opcional)</label>
+                        <input type="text" id="edit-path-input" placeholder="/home/user/servidores/meu_servidor">
+                        <small>Necessário para usar o Console.</small>
+                    </div>
+                    <div id="edit-error-message" class="error-message" style="display: none;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" id="edit-btn-cancel" class="cancel-btn">Cancelar</button>
+                    <button type="submit" class="confirm-btn">Salvar Alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+<script src="/static/main.js"></script>
+</body>
+</html>
