@@ -71,7 +71,7 @@ Para usuários de Linux, ou desenvolvedores em qualquer plataforma, a execução
       # Execute
       ./start.sh
       ```
-
+ 
     * **Modo Manual (Todas as Plataformas):**
       ```sh
       uvicorn web.main:app --reload
