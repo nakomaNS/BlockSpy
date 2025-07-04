@@ -1,0 +1,15 @@
+# Ambiente Virtual
+.venv/
+
+# Arquivos compilados do Python
+__pycache__/
+*.pyc
+
+# Arquivos de Build do PyInstaller
+build/
+dist/
+*.spec
+
+# Arquivos de Dados (opcional, mas recomendado se for grande ou sensível)
+data/
+database.db

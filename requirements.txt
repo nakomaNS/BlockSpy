@@ -1,0 +1,11 @@
+# Dependências principais do BlockSpy
+fastapi
+uvicorn[standard]
+jinja2
+mcstatus
+aiosqlite
+httpx
+aiohttp
+watchdog
+async-mcrcon
+python-dotenv

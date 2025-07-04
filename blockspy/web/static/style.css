@@ -1,0 +1,1382 @@
+.flag-icon {
+    width: 18px;
+    height: auto;
+    margin-right: 6px;
+    vertical-align: middle;
+}
+
+:root {
+    --bg-glass: rgba(30, 33, 39, 0.85);
+    --bg-main: #282c34;
+    --bg-card: #2f343d;
+    --bg-input: #1e2127;
+    --border-color: rgba(255, 255, 255, 0.1);
+    --text-primary: #e6edf3;
+    --text-secondary: #9ca3af;
+    --accent-blue: #3b82f6;
+    --accent-green: #22c55e;
+    --accent-red: #f85149;
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --accent-orange: #f97316;
+    --accent-yellow: #facc15;
+    --text-positive: #22c55e;
+    --text-negative: #ef4444;
+    --heatmap-card-height: 510px; 
+}
+
+body.light-mode {
+    --bg-glass: rgba(255, 255, 255, 0.75);
+    --bg-main: #f0f2f5;
+    --bg-card: #ffffff;
+    --bg-input: #f0f2f5;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --text-primary: #1f2937;
+    --text-secondary: #6b7280;
+    --accent-blue: #2563eb;
+    --accent-green: #16a34a;
+    --accent-red: #dc2626;
+    --accent-orange: #ea580c;
+    --accent-yellow: #eab308;
+    --text-positive: #16a34a;
+    --text-negative: #dc2626;
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* --- Reset & Base --- */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-family);
+    color: var(--text-primary);
+    margin: 0;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #000;
+}
+
+/* --- Layout & Background --- */
+.video-background {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: -1;
+    object-fit: cover;
+    transition: opacity 0.5s ease-in-out;
+    filter: blur(4px);
+}
+
+#video-light {
+    opacity: 0;
+}
+
+.glass-container {
+    width: 95%;
+    height: 94vh; 
+    max-width: 1600px;
+    margin: auto;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: var(--bg-glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    display: flex;
+    overflow: hidden;
+    transition: background-color 0.3s;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: transparent;
+    padding: 24px;
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    flex-shrink: 0;
+}
+
+.content-pane {
+    flex-grow: 1;
+    background-color: transparent;
+    padding: 32px;
+    overflow-y: auto;
+}
+
+.content-pane h1 {
+    margin: 0 0 24px 0;
+    font-size: 1.75rem;
+    font-weight: 600;
+}
+
+.add-server-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 24px;
+}
+
+/* --- Sidebar & Navigation --- */
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.logo-icon {
+    width: 80px;         /* Define a largura do container do ícone */
+    height: 100px;        /* Define a altura do container do ícone */
+    object-fit: cover;    /* Faz a imagem cobrir o espaço e corta o excesso */
+    border-radius: 8px;   /* Bônus: Adiciona bordas arredondadas para um visual mais suave */
+}
+.sidebar nav {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.nav-button {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 16px;
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--text-secondary);
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.nav-button.active,
+.nav-button:hover {
+    color: var(--text-primary);
+    background-color: var(--accent-blue);
+}
+
+.nav-button:not(.active):hover {
+    background-color: rgba(127, 127, 127, 0.1);
+}
+
+.nav-button .icon {
+    font-size: 1.2rem;
+}
+
+/* --- Dashboard & Server Cards --- */
+.dashboard-controls {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 24px;
+    align-items: center;
+}
+
+.server-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+}
+
+.server-card {
+    cursor: pointer;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.server-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.server-card.paused {
+    opacity: 0.6;
+    filter: grayscale(80%);
+}
+
+.server-card.paused:hover {
+    opacity: 1;
+    filter: grayscale(0);
+}
+
+.server-card.offline {
+    border-left: 4px solid var(--accent-red);
+}
+
+.server-card:not(.offline) {
+    border-left: 4px solid var(--accent-green);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.server-icon-and-details {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    overflow: hidden;
+}
+
+.server-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    border: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    overflow: hidden;
+}
+
+.server-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.server-icon.has-fallback::before {
+    content: attr(data-fallback-letter);
+}
+
+.server-details {
+    flex-grow: 1;
+    overflow: hidden;
+}
+
+.server-details h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.server-details p {
+    margin: 4px 0 0;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.card-actions {
+    display: flex;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
+}
+
+.card-action-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.card-action-btn:hover {
+    color: var(--text-primary);
+    background-color: var(--bg-main);
+}
+
+.player-info {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.status-badge.online {
+    background-color: rgba(34, 197, 94, 0.1);
+    color: var(--accent-green);
+}
+
+.status-badge.offline {
+    background-color: rgba(248, 81, 73, 0.1);
+    color: var(--accent-red);
+}
+
+.status-badge.paused {
+    background-color: rgba(107, 114, 128, 0.2);
+    color: var(--text-secondary);
+}
+
+.info-details {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 0.85rem;
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.info-row span:first-child {
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.info-row span:last-child {
+    font-weight: 600;
+    text-align: right;
+}
+
+.empty-message {
+    color: var(--text-secondary);
+    text-align: center;
+    grid-column: 1 / -1;
+    padding: 40px;
+    font-size: 1.1rem;
+}
+
+/* --- Forms & Controls --- */
+.search-bar {
+    flex-grow: 1;
+}
+
+.search-bar input {
+    width: 100%;
+    padding: 10px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.sort-buttons button {
+    padding: 10px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--bg-card);
+    color: var(--text-secondary);
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.sort-buttons button:hover {
+    background-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+.settings-section,
+.add-option-card {
+    background-color: var(--bg-card);
+    padding: 24px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 24px;
+}
+
+.settings-section h2,
+.add-option-card h2 {
+    margin: 0 0 16px 0;
+    font-size: 1.25rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-family: var(--font-family);
+}
+
+.form-group button {
+    padding: 12px 18px;
+    border: none;
+    border-radius: 6px;
+    background-color: var(--accent-blue);
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    align-self: flex-start;
+}
+
+.form-group button:hover {
+    background-color: #60a5fa;
+}
+
+#bulk-log,
+#file-log,
+#single-add-log {
+    margin-top: 16px;
+    white-space: pre-wrap;
+    background-color: var(--bg-input);
+    padding: 16px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    display: none;
+}
+
+.file-upload-area label {
+    background-color: var(--bg-input);
+    border: 2px dashed var(--border-color);
+    border-radius: 6px;
+    padding: 24px;
+    text-align: center;
+    cursor: pointer;
+    display: block;
+}
+
+.file-upload-area label:hover {
+    border-color: var(--accent-blue);
+}
+
+.file-upload-area input[type="file"] {
+    display: none;
+}
+
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.theme-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+
+.theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #434853;
+    transition: .4s;
+    border-radius: 26px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.slider {
+    background-color: var(--accent-blue);
+}
+
+input:checked+.slider:before {
+    transform: translateX(24px);
+}
+
+/* --- Modal --- */
+.modal-template {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(5px);
+}
+
+.modal-template.visible {
+    display: flex;
+}
+
+.modal-content {
+    background-color: var(--bg-card);
+    margin: auto;
+    padding: 30px;
+    border: 1px solid var(--border-color);
+    width: 90%;
+    max-width: 500px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header h2 {
+    margin: 0 0 15px 0;
+    color: var(--text-primary);
+}
+
+.modal-body p {
+    margin: 0 0 25px 0;
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.modal-body .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 20px;
+}
+
+.modal-body .form-group label {
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.modal-body .form-group input {
+    padding: 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+.modal-body .form-group small {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-top: -8px;
+}
+
+.error-message {
+    color: var(--text-primary); 
+    font-size: 1rem;             
+    font-weight: 500;          
+    margin-top: 16px;            
+    padding: 12px 16px;          
+    background-color: rgba(239, 68, 68, 0.1); 
+    border-left: 4px solid var(--accent-red); 
+    border-radius: 6px;          
+}
+
+.modal-footer {
+    text-align: right;
+}
+
+.modal-footer button {
+    padding: 10px 20px;
+    border-radius: 6px;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.modal-footer button.cancel-btn {
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.modal-footer button.confirm-btn {
+    background-color: var(--accent-blue);
+    color: #fff;
+}
+
+#modal-btn-confirm {
+    background-color: var(--accent-red);
+    color: #fff;
+}
+
+/* --- Estilos da Tela de Detalhes --- */
+#details-view {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.details-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    flex-shrink: 0;
+}
+
+.back-button {
+    padding: 10px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--bg-card);
+    color: var(--text-secondary);
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.back-button:hover {
+    background-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* ============================================================== */
+/* === LAYOUT PRINCIPAL DA TELA DE DETALHES - VERSÃO CORRIGIDA === */
+/* ============================================================== */
+.details-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-template-rows: auto auto; 
+    gap: 24px;
+    flex-grow: 1;
+}
+
+.details-chart-container,
+.details-players-container {
+    background-color: var(--bg-card);
+    padding: 24px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.details-players-container h2,
+.details-chart-container h2 {
+    margin-top: 0;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+}
+
+.chart-wrapper {
+    position: relative;
+    flex-grow: 1;
+}
+
+#details-player-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    overflow-y: auto;
+}
+
+#details-player-list li {
+    padding: 8px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+#details-player-list li:last-child {
+    border-bottom: none;
+}
+
+.player-tooltip {
+    position: fixed;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    z-index: 2000;
+    max-width: 250px;
+    pointer-events: none;
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.1s ease, transform 0.1s ease;
+}
+
+.player-tooltip.visible {
+    opacity: 1;
+    transform: scale(1);
+}
+
+.player-tooltip-title {
+    font-weight: 600;
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.player-tooltip-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+}
+
+.player-tooltip-list li {
+    padding: 2px 0;
+}
+
+.custom-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px 24px;
+    margin-bottom: 20px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    transition: all 0.2s ease-in-out;
+}
+
+.legend-item:hover {
+    color: var(--text-primary);
+}
+
+.legend-item.hidden {
+    text-decoration: line-through;
+    opacity: 0.5;
+}
+
+.legend-symbol {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.9);
+}
+
+#reset-zoom-btn {
+    margin-right: 12px;
+}
+
+#details-stats-card {
+    padding: 20px 24px;
+}
+
+#details-stats-card h2 {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+.stats-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.stat-label {
+    font-size: 1rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.stat-value {
+    font-size: 1.4rem;
+    font-weight: 700;
+}
+
+#stat-uptime { color: var(--accent-green); }
+#stat-peak { color: var(--accent-orange); }
+#stat-avg { color: var(--accent-blue); }
+
+.details-players-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 24px; 
+}
+
+/* --- ESTILOS PARA O NOVO CONSOLE RCON/LOG --- */
+.card-console {
+    background-color: var(--bg-card);
+    padding: 24px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    height: 400px;
+    position: relative;
+    overflow: hidden;
+}
+
+.card-console h2 {
+    margin-top: 0;
+    flex-shrink: 0;
+}
+
+.console-output {
+    flex-grow: 1;
+    background-color: var(--bg-input);
+    border-radius: 4px;
+    padding: 16px;
+    overflow-y: scroll;
+    font-family: 'Consolas', 'Menlo', 'Monaco', monospace;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    white-space: pre-wrap;
+}
+
+.console-input-area {
+    display: flex;
+    align-items: center;
+    margin-top: 16px;
+    flex-shrink: 0;
+}
+
+.console-prompt {
+    font-family: 'Consolas', 'Menlo', 'Monaco', monospace;
+    font-size: 1rem;
+    color: var(--accent-green);
+    margin-right: 8px;
+}
+
+#rcon-command-input {
+    flex-grow: 1;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    font-family: 'Consolas', 'Menlo', 'Monaco', monospace;
+    font-size: 1rem;
+    padding: 8px;
+}
+
+#rcon-command-input:focus {
+    outline: none;
+    background-color: rgba(127, 127, 127, 0.1);
+    border-radius: 4px;
+}
+
+/* ================================================================ */
+/* === REGRAS DE POSICIONAMENTO EXPLÍCITAS PARA O GRID - A CURA === */
+/* ================================================================ */
+.details-chart-container {
+    grid-column: 1;
+    grid-row: 1;
+}
+
+.card-console {
+    grid-column: 1;
+    grid-row: 2;
+}
+
+.details-players-wrapper {
+    grid-column: 2;
+    grid-row: 1 / span 2; 
+}
+.details-chart-container {
+    background-color: var(--bg-card);
+    padding: 24px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    /* Mude este valor para controlar a altura do card do gráfico */
+
+}
+/* --- ESTILOS PARA O OVERLAY DO CONSOLE --- */
+
+.console-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(30, 33, 39, 0.7); /* Fundo semi-transparente */
+    backdrop-filter: blur(4px); /* EFEITO DE BLUR! */
+    -webkit-backdrop-filter: blur(4px);
+    border-radius: 8px; /* Para bater com as bordas do card */
+    display: none; /* Começa escondido */
+    align-items: center;
+    justify-content: center;
+    z-index: 5; /* Garante que ele fique por cima do console */
+}
+
+.console-overlay.visible {
+    display: flex; /* Quando tiver a classe 'visible', ele aparece */
+}
+
+.overlay-content {
+    text-align: center;
+    color: var(--text-primary);
+}
+
+.overlay-content p {
+    font-weight: 500;
+    margin-bottom: 24px;
+}
+
+
+#console-configure-btn {
+    margin: 0 auto;
+}
+/* Estilos para destacar o grupo de configurações RCON no modal */
+.rcon-settings-group {
+    background-color: rgba(0, 0, 0, 0.15); /* Um fundo sutilmente mais escuro */
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 16px;
+    margin: 20px 0; /* Espaçamento antes e depois */
+}
+
+.rcon-settings-group h4 {
+    margin: 0 0 16px 0;
+    text-align: center;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+/* --- ESTILOS PARA AS LINHAS DO CONSOLE --- */
+.log-line { color: var(--text-secondary); }
+.log-chat { color: var(--text-primary); font-weight: 500; }
+.log-status { color: var(--accent-yellow); text-align: center; opacity: 0.8; }
+.log-error { color: var(--accent-red); font-weight: bold; }
+.log-rcon-sent { color: var(--accent-blue); }
+.log-rcon-response { color: #c7c7c7; padding-left: 10px; border-left: 2px solid var(--border-color); 
+}
+/* --- ESTILOS PARA O "COFRE" RCON --- */
+
+.rcon-settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+}
+
+.rcon-settings-header h4 {
+    margin: 0; /* Remove a margem que estava no h4 antes */
+}
+
+/* Estilo para os inputs quando estiverem travados */
+.form-group input:disabled {
+    background-color: rgba(0, 0, 0, 0.2);
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+/* --- ESTILOS PARA O NOSSO HEATMAP CUSTOMIZADO --- */
+.custom-heatmap-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr); /* 7 dias da semana */
+    gap: 4px;
+    padding: 10px;
+    height: 100%;
+    grid-template-rows: repeat(5, 1fr); 
+}
+
+.heatmap-day {
+    aspect-ratio: 1 / 1; /* Garante que seja um quadrado perfeito */
+    background-color: var(--bg-input);
+    border-radius: 4px;
+    position: relative;
+}
+
+.heatmap-day:hover .heatmap-tooltip {
+    display: block; /* Mostra o tooltip no hover */
+}
+
+.heatmap-tooltip {
+    display: none; 
+    position: fixed; /* Fixo na tela, para flutuar sobre tudo */
+    background-color: #18181b; /* Um preto um pouco mais suave */
+    color: #e4e4e7;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    white-space: nowrap;
+    z-index: 9999; /* No andar mais alto possível! */
+    pointer-events: none; /* Impede que o próprio tooltip bloqueie o mouse */
+    border: 1px solid var(--border-color);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+/* Calço invisível para forçar espaço de rolagem no final da página */
+.content-spacer {
+    height: 100px; /* Ajuste esta altura como quiser para mais ou menos espaço! */
+}
+
+#cal-heatmap {
+    flex-grow: 1; /* Permite que ele cresça para ocupar o espaço no card */
+    margin-top: 10px;
+}
+
+.heatmap-weekday {
+    font-size: 0.75rem;          /* Um pouco menor para dar um ar refinado */
+    font-weight: 600;            /* Mais "cheio", semi-bold */
+    color: var(--text-primary);  /* Cor principal, para mais destaque */
+    text-transform: uppercase;   /* Estilo de label profissional */
+    padding-bottom: 10px;        /* Espaço para a linha abaixo */
+    margin-bottom: 5px;          /* Espaço entre a linha e os quadrados */
+    border-bottom: 2px solid var(--border-color); /* Separador visual */
+    text-align: center;
+}
+/* --- ANIMAÇÃO DE ERRO PARA INPUTS --- */
+.input-shake {
+    /* Duração da animação: meio segundo */
+    animation: shake 0.5s;
+}
+
+@keyframes shake {
+    /* A animação acontece em 10 etapas (0% a 100%) */
+    10%, 90% { transform: translateX(-1px); }
+    20%, 80% { transform: translateX(2px); }
+    30%, 50%, 70% { transform: translateX(-4px); }
+    40%, 60% { transform: translateX(4px); }
+}
+
+#edit-server-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* cria um espaçamento vertical consistente entre as seções */
+}
+
+.card-timeline {
+    background-color: var(--bg-card);
+    padding: 24px;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    height: 255px;
+}
+
+.card-timeline h2 {
+    margin-top: 0;
+    flex-shrink: 0;
+}
+
+.timeline-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    position: relative;
+    padding-left: 25px; /* Espaço para a linha e os ícones */
+}
+
+/* A linha vertical da timeline */
+.timeline-body::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background-color: var(--border-color);
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+/* O ícone/bolinha de cada evento */
+.timeline-item-icon {
+    position: absolute;
+    left: -24px; /* Move o ícone para cima da linha vertical */
+    top: 2px;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--bg-main);
+    font-size: 12px;
+}
+
+.timeline-item-timestamp {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.timeline-item-details {
+    font-size: 0.95rem;
+    color: var(--text-primary);
+}
+
+.console-timeline-wrapper {
+    grid-column: 1;
+    grid-row: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;      /* CRIA O ESPAÇAMENTO DE 24PX */
+}
+
+.chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px; /* Ajuste o espaçamento conforme necessário */
+}
+
+.chart-header h2 {
+    margin: 0; /* Remove a margem do H2 para melhor alinhamento */
+}
+
+/* Container para os botões de período */
+.chart-period-selector {
+    display: flex;
+    gap: 8px;
+    background-color: var(--bg-input);
+    padding: 4px;
+    border-radius: 8px;
+}
+
+/* Estilo individual de cada botão de período */
+.period-btn {
+    background-color: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.period-btn:hover {
+    color: var(--text-primary);
+    background-color: var(--border-color);
+}
+
+/* Estilo para o botão que está ativo/selecionado */
+.period-btn.active {
+    background-color: var(--accent-blue);
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+/* --- Estilos para o Novo Menu de Ações --- */
+
+/* Container para o botão e o menu, para posicionamento correto */
+.actions-menu-container {
+    position: relative;
+    display: inline-block;
+}
+
+/* Reutiliza o estilo de botão de ação dos cards, mas o colocamos no header */
+#export-actions-btn {
+    padding: 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--bg-card);
+    color: var(--text-secondary);
+    display: flex; /* Garante que o SVG dentro fique centralizado */
+    align-items: center;
+    justify-content: center;
+}
+
+#export-actions-btn:hover {
+    background-color: var(--border-color);
+    color: var(--text-primary);
+}
+
+/* O menu dropdown em si */
+.dropdown-menu {
+    position: absolute;
+    top: 110%; /* Aparece um pouco abaixo do botão */
+    right: 0;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    padding: 8px;
+    z-index: 100;
+    width: 220px; /* Largura do menu */
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform: translateY(-10px);
+    opacity: 0;
+    pointer-events: none; /* Impede interação quando escondido */
+}
+
+/* Classe para mostrar o menu */
+.dropdown-menu:not(.hidden) {
+    transform: translateY(0);
+    opacity: 1;
+    pointer-events: auto; /* Permite interação quando visível */
+}
+
+/* Itens dentro do menu */
+.dropdown-menu a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-weight: 500;
+    font-size: 0.9rem;
+    display: block;
+    transition: all 0.2s ease;
+}
+
+.dropdown-menu a:hover {
+    background-color: var(--accent-blue);
+    color: #fff;
+}
+
+
+/* --- Estilos para o Botão de Reset Contextual --- */
+
+.chart-controls-footer {
+    display: flex;
+    justify-content: flex-end; /* Alinha o botão à direita */
+    padding: 8px 0; /* Um pequeno espaçamento */
+    height: 38px; /* Altura fixa para evitar que o layout "pule" */
+}
+
+#contextual-reset-zoom-btn {
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    opacity: 0;
+    transform: translateY(-10px);
+    pointer-events: none;
+}
+
+#contextual-reset-zoom-btn:not(.hidden) {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+}
+
+/* Classe utilitária para esconder/mostrar elementos */
+.hidden {
+    display: none !important; /* !important para garantir que vai sobrescrever outros estilos */
+}
+.details-actions-group {
+    display: flex;          /* Transforma o container em uma "fila" */
+    align-items: center;    /* A mágica do alinhamento vertical */
+    gap: 12px;              /* Um espaço elegante entre os botões */
+}
+#heatmap-card {
+    height: var(--heatmap-card-height); /* Usa a variável para definir a altura */
+    display: flex;
+    flex-direction: column; /* Organiza o título e o heatmap um sobre o outro */
+}
+
+/* Centraliza o título "Heatmap" */
+#heatmap-card h2 {
+    text-align: center;   /* A mágica da centralização */
+    margin-bottom: 15px;  /* Cria um espaço entre o título e o gráfico */
+    flex-shrink: 0;       /* Garante que o título não seja "esmagado" */
+}
+
+/* Garante que o container do gráfico ocupe todo o espaço restante */
+#cal-heatmap {
+    flex-grow: 1;
+    min-height: 0; /* Truque de flexbox para evitar overflow */
+}
+
+#details-legend-container {
+    gap: 8px 18px; /* 8px de espaço vertical, 18px de espaço horizontal */
+    padding-top: 10px;
+}
+
+/* Deixa cada item da legenda mais interativo e com feedback visual */
+.legend-item {
+    transition: all 0.2s ease-in-out; /* Animação suave para todas as propriedades */
+    padding: 4px 8px;
+    border-radius: 6px; /* Bordas um pouco mais arredondadas */
+}
+
+/* Efeito de "levantar" e destacar quando o mouse passa por cima */
+.legend-item:not(.hidden):hover {
+    background-color: var(--border-color);
+    transform: translateY(-2px); /* Efeito sutil de elevação */
+}
+
+/* Estilo para quando um item está "desativado" */
+.legend-item.hidden {
+    opacity: 0.4; /* Deixa o item mais transparente */
+    text-decoration: line-through; /* Tacha o texto para indicar inatividade */
+}
+
+.legend-item.hidden .legend-symbol {
+    /* Deixa o círculo de cor mais "apagado" também */
+    filter: grayscale(80%);
+}
+/* 2. Removendo o "portal azul" do botão ativo */
+.nav-button:focus,
+.nav-button:focus-visible {
+    outline: none; /* Remove o contorno padrão e problemático do navegador */
+}
+
+/* 3. Coloca um efeito de brilho no lugar */
+.nav-button.active {
+    box-shadow: 0 0 8px rgba(59, 130, 246, 0.5), inset 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+#shutdown-button {
+    margin-top: auto;   
+}
+
+.nav-button .icon svg {
+    display: block; /* Remove espaços extras que o SVG pode criar */
+}
