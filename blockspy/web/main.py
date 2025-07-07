@@ -14,6 +14,8 @@ import os
 import sys
 import json
 from blockspy.monitor_service import MonitorService, RconAuthenticationError, RconConnectionError
+from blockspy.utils import get_persistent_data_path
+
 def resource_path(relative_path):
     """ Retorna o caminho absoluto para o recurso, funcionando para dev e para o PyInstaller """
     try:
@@ -27,7 +29,11 @@ def resource_path(relative_path):
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 logging.basicConfig(level=logging.INFO, format='%(asctime)s:%(levelname)s:%(name)s: %(message)s')
 app = FastAPI()
-service = MonitorService(db_path=resource_path("blockspy/data/database.db"))
+# Define o caminho persistente para o banco de dados
+db_full_path = get_persistent_data_path('database.db') 
+
+# Inicializa o serviço com o caminho correto e permanente
+service = MonitorService(db_path=db_full_path)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

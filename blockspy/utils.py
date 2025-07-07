@@ -5,6 +5,7 @@ import logging
 import uuid
 import hashlib
 import asyncio
+import os
 
 # Regex do 'commands.py'
 IP_DOMAIN_REGEX = re.compile(r"^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}(?::\d+)?$|^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?::\d+)?$")
@@ -84,3 +85,17 @@ async def determinar_tipo_servidor(status, tipo_atual_db: str, ip: str, logger: 
     except Exception as e:
         logger.warning(f"Erro ao determinar tipo do servidor {ip}: {e}")
         return "Erro na Checagem"
+
+def get_persistent_data_path(filename: str) -> str:
+    """
+    Cria e retorna o caminho para um arquivo de dados persistente
+    na pasta do usuário. Garante que a pasta exista.
+    """
+    # Cria uma pasta para o seu app no diretório "home" do usuário
+    app_data_dir = os.path.join(os.path.expanduser('~'), 'BlockSpy')
+    
+    # Garante que essa pasta exista. Se não existir, cria ela.
+    os.makedirs(app_data_dir, exist_ok=True)
+    
+    # Retorna o caminho completo para o arquivo (ex: C:/Users/SeuUsuario/BlockSpy/database.db)
+    return os.path.join(app_data_dir, filename)

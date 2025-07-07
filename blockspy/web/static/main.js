@@ -16,6 +16,22 @@ document.addEventListener('DOMContentLoaded', async () => {
         confirmCallback = onConfirm;
         confirmModal.classList.add('visible');
     }
+    function parseVersion(versionString) {
+    if (!versionString) return { flavor: null, baseVersion: null };
+    const versionMatch = versionString.match(/\d+(\.\d+)+/);
+    const baseVersion = versionMatch ? versionMatch[0] : null;
+
+    let flavor = "Vanilla";
+    if (baseVersion) {
+        const flavorCandidate = versionString.replace(baseVersion, '').replace(/[()]/g, '').trim();
+        if (flavorCandidate) {
+            flavor = flavorCandidate.split(' ')[0];
+        }
+    } else {
+        flavor = versionString.split(' ')[0];
+    }
+    return { flavor, baseVersion };
+}
     function updateConsoleUI(isConfigured, serverObject) {
     const overlay = document.getElementById('console-overlay');
     const output = document.getElementById('console-log-display');
@@ -66,10 +82,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     let lastHistoryData = null;
 
     function formatServerType(type) {
-        if (type === 'Original') return 'Original 🛡️';
-        if (type === 'Pirata') return 'Pirata 🏴‍☠️';
-        return 'Indefinido';
+    const originalIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>`;
+    const pirataIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>`;
+
+    if (type === 'Original') {
+        // Usando template literals para combinar ícone e texto
+        return `${originalIcon} Original`;
     }
+    if (type === 'Pirata') {
+        return `${pirataIcon} Pirata`;
+    }
+    return 'Indefinido'; // Mantém o padrão para outros casos
+}
 
     const playerTooltip = document.createElement('div');
     playerTooltip.className = 'player-tooltip';
@@ -179,7 +203,44 @@ document.addEventListener('DOMContentLoaded', async () => {
         const savedTheme = localStorage.getItem('theme') || 'dark';
         applyTheme(savedTheme);
     }
+    function populateFilters() {
+    if (!allServersCache.length) return;
 
+    const flavorFilter = document.getElementById('filter-flavor');
+    const baseVersionFilter = document.getElementById('filter-base-version');
+    const typeFilter = document.getElementById('filter-type');
+
+    const flavors = new Set();
+    const baseVersions = new Set();
+    const types = new Set();
+
+    allServersCache.forEach(server => {
+        const { flavor, baseVersion } = parseVersion(server.versao);
+        if (flavor) flavors.add(flavor);
+        if (baseVersion) baseVersions.add(baseVersion);
+        if (server.tipo_servidor) types.add(server.tipo_servidor);
+    });
+
+    const sortedFlavors = [...flavors].sort();
+    const sortedBaseVersions = [...baseVersions].sort().reverse();
+    const sortedTypes = [...types].sort();
+
+    const selectedFlavor = flavorFilter.value;
+    const selectedBaseVersion = baseVersionFilter.value;
+    const selectedType = typeFilter.value;
+
+    flavorFilter.innerHTML = '<option value="">Todos</option>';
+    baseVersionFilter.innerHTML = '<option value="">Todas</option>';
+    typeFilter.innerHTML = '<option value="">Todos</option>';
+
+    sortedFlavors.forEach(flavor => flavorFilter.add(new Option(flavor, flavor)));
+    sortedBaseVersions.forEach(version => baseVersionFilter.add(new Option(version, version)));
+    sortedTypes.forEach(type => typeFilter.add(new Option(type, type)));
+
+    flavorFilter.value = selectedFlavor;
+    baseVersionFilter.value = selectedBaseVersion;
+    typeFilter.value = selectedType;
+}
     function renderMotdInElement(motdString, containerElement) {
         containerElement.innerHTML = '';
         if (!motdString) {
@@ -417,13 +478,16 @@ function setupConsole(serverIp) {
     }
 
     async function fetchAndUpdateServers() {
-        try {
-            const response = await fetch('/api/servers');
-            if (!response.ok) { throw new Error(`API falhou com status ${response.status}`); }
-            allServersCache = await response.json();
-            applyFilterAndSort();
-        } catch (error) { console.error("Falha ao buscar dados dos servidores:", error); if(serverListContainer) serverListContainer.innerHTML = '<p class="empty-message">Erro ao carregar servidores.</p>';}
-    }
+    try {
+        const response = await fetch('/api/servers');
+        if (!response.ok) { throw new Error(`API falhou com status ${response.status}`); }
+        allServersCache = await response.json();
+        
+        populateFilters(); // ADICIONE ESTA LINHA
+        
+        applyFilterAndSort();
+    } catch (error) { console.error("Falha ao buscar dados dos servidores:", error); if(serverListContainer) serverListContainer.innerHTML = '<p class="empty-message">Erro ao carregar servidores.</p>';}
+}
     
     async function showDetailsView(serverObject) {
     currentOpenServer = serverObject;
@@ -432,9 +496,11 @@ function setupConsole(serverIp) {
     clearInterval(detailsUpdateIntervalId);
     window.showView('details');
 
-    // Mapeamento dos elementos da tela de detalhes
+    // --- 1. MAPEAMENTO DOS ELEMENTOS ---
     const nameEl = document.getElementById('details-server-name');
     const ipEl = document.getElementById('details-server-ip');
+    const iconContainer = document.getElementById('details-server-icon');
+    const typeEl = document.getElementById('details-server-type');
     const playerListEl = document.getElementById('details-player-list');
     const offlinePlayerListEl = document.getElementById('details-offline-player-list');
     const playerCountEl = document.getElementById('details-player-count');
@@ -442,9 +508,22 @@ function setupConsole(serverIp) {
     const statPeakEl = document.getElementById('stat-peak');
     const statAvgEl = document.getElementById('stat-avg');
 
-    // Limpeza inicial da tela para dar feedback de carregamento
-    if(nameEl) nameEl.textContent = 'Carregando...';
-    if(ipEl) ipEl.textContent = '...';
+    // --- 2. POPULAÇÃO IMEDIATA DO CABEÇALHO (com dados do serverObject) ---
+    const displayName = serverObject.nome_customizado || serverObject.nome_servidor || serverObject.ip_servidor;
+    if (nameEl) renderMotdInElement(displayName, nameEl);
+    if (ipEl) ipEl.textContent = serverObject.ip_servidor;
+    if (typeEl) typeEl.innerHTML = formatServerType(serverObject.tipo_servidor);
+    if (iconContainer) {
+        iconContainer.innerHTML = ''; // Limpa o ícone antigo
+        iconContainer.dataset.ip = serverObject.ip_servidor; // Necessário para loadIcon
+        if (serverObject.tem_icone_customizado == 1) {
+            loadIcon(iconContainer);
+        } else {
+            iconContainer.innerHTML = `<img src="/static/grass.png" alt="Ícone padrão">`;
+        }
+    }
+
+    // --- 3. LIMPEZA DOS DADOS QUE DEPENDEM DE API CALLS ---
     if(playerListEl) playerListEl.innerHTML = '<li>Carregando...</li>';
     if(offlinePlayerListEl) offlinePlayerListEl.innerHTML = '<li>Carregando...</li>';
     if(playerCountEl) playerCountEl.textContent = 'Jogadores Online';
@@ -460,10 +539,9 @@ function setupConsole(serverIp) {
     const periodSelector = document.querySelector('.chart-period-selector');
     let currentHours = 24; // Padrão inicial
 
-    // Função interna que busca todos os dados e renderiza a tela
+    // --- 4. FUNÇÃO INTERNA PARA BUSCAR E RENDERIZAR O RESTO ---
     const fetchAndRenderDetails = async (hours = 24) => {
-         try {
-            // A chamada de history agora usa o parâmetro 'hours'
+        try {
             const [historyResponse, playersResponse, statsResponse, calendarResponse, eventsResponse] = await Promise.all([
                 fetch(`/api/servers/${serverIp}/history?hours=${hours}`),
                 fetch(`/api/servers/${serverIp}/players`),
@@ -482,17 +560,15 @@ function setupConsole(serverIp) {
             const calendarData = await calendarResponse.json(); 
             const eventsData = await eventsResponse.json();
             
-            const displayName = serverObject.nome_customizado || serverObject.nome_servidor || serverObject.ip_servidor;
-            if(nameEl) renderMotdInElement(displayName, nameEl);
-            if(ipEl) ipEl.textContent = serverObject.ip_servidor;
-            
+            // Popula as estatísticas
             if(statUptimeEl) statUptimeEl.textContent = `${statsData.uptime_percent}%`;
             if(statPeakEl) statPeakEl.textContent = statsData.peak_players;
             if(statAvgEl) statAvgEl.textContent = statsData.average_players;
 
+            // Renderiza os componentes da tela
             lastHistoryData = historyData;
             renderHistoryChart(historyData);
-            renderPlayerLists(playersData.online, playersData.offline);
+            renderPlayerLists(playersData.online, playersData.offline, serverObject.jogadores_maximos); // Passando o máximo de jogadores
             renderCalendarHeatmap(calendarData, serverObject.jogadores_maximos);
             renderEventTimeline(eventsData);
 
@@ -507,7 +583,6 @@ function setupConsole(serverIp) {
     
     // Lógica para os botões de período
     if (periodSelector) {
-        // Clona o nó para remover event listeners antigos e evitar duplicação
         const newSelector = periodSelector.cloneNode(true);
         periodSelector.parentNode.replaceChild(newSelector, periodSelector);
 
@@ -515,24 +590,21 @@ function setupConsole(serverIp) {
             if (e.target.classList.contains('period-btn')) {
                 const selectedHours = e.target.dataset.hours;
                 
-                // Compara string com string para segurança
                 if (selectedHours !== String(currentHours)) {
                     currentHours = Number(selectedHours);
                     
-                    // Atualiza a classe 'active' nos botões
                     if (newSelector.querySelector('.period-btn.active')) {
                         newSelector.querySelector('.period-btn.active').classList.remove('active');
                     }
                     e.target.classList.add('active');
                     
-                    // Busca e renderiza os dados para o novo período
                     fetchAndRenderDetails(currentHours);
                 }
             }
         });
     }
 
-    // Chamada inicial para carregar os dados com o período padrão (24h)
+    // Chamada inicial para carregar os dados
     await fetchAndRenderDetails(currentHours);
     
     // Inicia o WebSocket do console
@@ -603,7 +675,6 @@ function setupConsole(serverIp) {
         },
         options: {
             responsive: true,
-            clip: false,
             maintainAspectRatio: false,
             animation: { duration: 0 },
             interaction: { intersect: false, mode: 'index' },
@@ -667,7 +738,13 @@ function setupConsole(serverIp) {
     }
 }}
     });
-
+    canvas.onmouseleave = () => {
+        if (historyChart && historyChart.tooltip) {
+            // Esconde o tooltip programaticamente
+            historyChart.tooltip.setActiveElements([], { x: 0, y: 0 });
+            historyChart.update();
+        }
+    };
     // 5. Renderiza a legenda (agora sempre será executada após a criação)
     if (legendContainer) {
         historyChart.data.datasets.forEach((dataset, index) => {
@@ -694,24 +771,33 @@ function setupConsole(serverIp) {
     }
 }
     
-    function renderPlayerLists(onlinePlayers, offlinePlayers) {
-        const onlineListEl = document.getElementById('details-player-list');
-        const offlineListEl = document.getElementById('details-offline-player-list');
-        const onlineCountEl = document.getElementById('details-player-count');
+    function renderPlayerLists(onlinePlayers, offlinePlayers, maxPlayers) {
+    const onlineListEl = document.getElementById('details-player-list');
+    const offlineListEl = document.getElementById('details-offline-player-list');
+    const onlineCountEl = document.getElementById('details-player-count');
 
-        if (onlineListEl && onlineCountEl) {
-            onlineListEl.innerHTML = '';
+    if (onlineListEl && onlineCountEl) {
+        onlineListEl.innerHTML = '';
+        
+        // --- INÍCIO DA ALTERAÇÃO ---
+        // Se maxPlayers for um número válido, mostra o formato (X/Y), senão, mostra só o atual
+        if (maxPlayers && maxPlayers > 0) {
+            onlineCountEl.textContent = `Jogadores Online (${onlinePlayers.length} / ${maxPlayers})`;
+        } else {
             onlineCountEl.textContent = `Jogadores Online (${onlinePlayers.length})`;
-            if (onlinePlayers.length === 0) {
-                onlineListEl.innerHTML = '<li>Nenhum jogador online.</li>';
-            } else {
-                onlinePlayers.sort().forEach(player => {
-                    const li = document.createElement('li');
-                    li.textContent = player;
-                    onlineListEl.appendChild(li);
-                });
-            }
         }
+        // --- FIM DA ALTERAÇÃO ---
+
+        if (onlinePlayers.length === 0) {
+            onlineListEl.innerHTML = '<li>Nenhum jogador online.</li>';
+        } else {
+            onlinePlayers.sort().forEach(player => {
+                const li = document.createElement('li');
+                li.textContent = player;
+                onlineListEl.appendChild(li);
+            });
+        }
+    }
 
         if (offlineListEl) {
             offlineListEl.innerHTML = '';
@@ -1096,29 +1182,77 @@ if (editForm) {
 
     let currentSort = { key: 'nome_servidor', direction: 'asc' };
     function applyFilterAndSort() {
-        let filtered = [...allServersCache];
-        const searchInput = document.getElementById('search-input');
-        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
-        if (searchTerm) { filtered = filtered.filter(server => { const displayName = server.nome_customizado || server.nome_servidor || ''; return displayName.toLowerCase().includes(searchTerm) || server.ip_servidor.toLowerCase().includes(searchTerm); }); }
-        filtered.sort((a, b) => {
-            let valA = a[currentSort.key] || (currentSort.key === 'jogadores_online' ? -1 : '');
-            let valB = b[currentSort.key] || (currentSort.key === 'jogadores_online' ? -1 : '');
-            if (typeof valA === 'string') { valA = valA.toLowerCase(); valB = valB.toLowerCase(); }
-            if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
-            if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
-            return 0;
+    let filtered = [...allServersCache];
+
+    // Filtros
+    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+    const selectedType = document.getElementById('filter-type').value;
+    const selectedFlavor = document.getElementById('filter-flavor').value;
+    const selectedBaseVersion = document.getElementById('filter-base-version').value;
+
+    if (searchTerm) {
+        filtered = filtered.filter(server => {
+            const displayName = server.nome_customizado || server.nome_servidor || '';
+            return displayName.toLowerCase().includes(searchTerm) || server.ip_servidor.toLowerCase().includes(searchTerm);
         });
-        renderServerList(filtered);
+    }
+    if (selectedType) {
+        filtered = filtered.filter(server => server.tipo_servidor === selectedType);
+    }
+    if (selectedFlavor) {
+        filtered = filtered.filter(server => parseVersion(server.versao).flavor === selectedFlavor);
+    }
+    if (selectedBaseVersion) {
+        filtered = filtered.filter(server => parseVersion(server.versao).baseVersion === selectedBaseVersion);
     }
 
+    // Ordenação
+    const sortBy = document.getElementById('sort-by').value.split('-');
+    const sortKey = sortBy[0];
+    const sortDirection = sortBy[1];
+
+    filtered.sort((a, b) => {
+        let valA = a[sortKey];
+        let valB = b[sortKey];
+
+        if (sortKey === 'jogadores_online' || sortKey === 'ping') {
+            valA = valA ?? -1;
+            valB = valB ?? -1;
+        } else {
+            valA = (valA || '').toString().toLowerCase();
+            valB = (valB || '').toString().toLowerCase();
+        }
+
+        if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
+        if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
+        return 0;
+    });
+
+    renderServerList(filtered);
+}
+
     function setupDashboardControls() {
-        const searchInput = document.getElementById('search-input');
-        if(searchInput) searchInput.addEventListener('input', applyFilterAndSort);
-        const sortNameBtn = document.getElementById('sort-by-name');
-        if(sortNameBtn) sortNameBtn.addEventListener('click', () => { currentSort = { key: 'nome_servidor', direction: 'asc' }; applyFilterAndSort(); });
-        const sortPlayersBtn = document.getElementById('sort-by-players');
-        if(sortPlayersBtn) sortPlayersBtn.addEventListener('click', () => { currentSort = { key: 'jogadores_online', direction: 'desc' }; applyFilterAndSort(); });
+    const searchInput = document.getElementById('search-input');
+    const toggleBtn = document.getElementById('toggle-filters-btn');
+    const filtersContainer = document.getElementById('filters-container');
+    const typeFilter = document.getElementById('filter-type');
+    const flavorFilter = document.getElementById('filter-flavor');
+    const baseVersionFilter = document.getElementById('filter-base-version');
+    const sortBy = document.getElementById('sort-by');
+
+    if (toggleBtn) {
+        toggleBtn.addEventListener('click', () => {
+            filtersContainer.classList.toggle('hidden');
+            toggleBtn.classList.toggle('active');
+        });
     }
+
+    if(searchInput) searchInput.addEventListener('input', applyFilterAndSort);
+    if(typeFilter) typeFilter.addEventListener('change', applyFilterAndSort);
+    if(flavorFilter) flavorFilter.addEventListener('change', applyFilterAndSort);
+    if(baseVersionFilter) baseVersionFilter.addEventListener('change', applyFilterAndSort);
+    if(sortBy) sortBy.addEventListener('change', applyFilterAndSort);
+}
 
     function setupAddForms() {
         async function processIpList(ips, logElement, form) {
@@ -1223,24 +1357,72 @@ async function initializeApp() {
 
         // 3. Lógica para salvar o gráfico como imagem
         const saveImageBtn = document.getElementById('save-chart-image-btn');
-        if (saveImageBtn) {
-            saveImageBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (!historyChart || !currentOpenServer) {
-                    alert("Gráfico não carregado ou nenhum servidor selecionado.");
-                    return;
-                }
+    if (saveImageBtn) {
+        // ...e SUBSTITUA todo o seu event listener por este:
+        saveImageBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (!historyChart || !currentOpenServer) {
+                alert("Gráfico não carregado ou nenhum servidor selecionado.");
+                return;
+            }
 
-                const date = new Date().toISOString().split('T')[0];
-                const serverName = (currentOpenServer.nome_customizado || currentOpenServer.ip_servidor).replace(/[^a-z0-9]/gi, '_');
-                const fileName = `grafico_${serverName}_${date}.png`;
+            // --- INÍCIO DA NOVA LÓGICA DE EXPORTAÇÃO ---
 
+            const originalCanvas = historyChart.canvas;
+            const chartDataURL = originalCanvas.toDataURL('image/png'); // Pega a imagem do gráfico
+            const img = new Image();
+            img.src = chartDataURL;
+
+            // Só continuamos depois que a imagem do gráfico estiver pronta
+            img.onload = () => {
+                // 1. Cria um novo canvas com espaço para o cabeçalho e bordas
+                const PADDING = 30;
+                const HEADER_HEIGHT = 90;
+                const newCanvas = document.createElement('canvas');
+                newCanvas.width = originalCanvas.width + (PADDING * 2);
+                newCanvas.height = originalCanvas.height + HEADER_HEIGHT + PADDING;
+                const ctx = newCanvas.getContext('2d');
+
+                // 2. Desenha o fundo usando a cor do card da sua UI
+                const bgColor = getComputedStyle(document.documentElement).getPropertyValue('--bg-card').trim();
+                ctx.fillStyle = bgColor;
+                ctx.fillRect(0, 0, newCanvas.width, newCanvas.height);
+
+                // 3. Escreve as informações no cabeçalho
+                const titleColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
+                const subtitleColor = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim();
+                const serverName = (currentOpenServer.nome_customizado || currentOpenServer.nome_servidor || currentOpenServer.ip_servidor).replace(/§[0-9a-fk-or]/gi, '');
+                
+                // Nome do Servidor
+                ctx.fillStyle = titleColor;
+                ctx.font = "bold 22px 'Inter', sans-serif";
+                ctx.textAlign = 'center';
+                ctx.fillText(serverName, newCanvas.width / 2, PADDING + 28);
+                
+                // Período de tempo do gráfico
+                const minDate = new Date(historyChart.scales.x.min).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+                const maxDate = new Date(historyChart.scales.x.max).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
+                ctx.fillStyle = subtitleColor;
+                ctx.font = "15px 'Inter', sans-serif";
+                ctx.fillText(`Período: ${minDate} a ${maxDate}`, newCanvas.width / 2, PADDING + 58);
+
+                // 4. Desenha a imagem do gráfico no novo canvas
+                ctx.drawImage(img, PADDING, HEADER_HEIGHT);
+                
+                // 5. Gera o nome do arquivo e dispara o download
                 const link = document.createElement('a');
-                link.href = historyChart.toBase64Image();
+                const date = new Date().toISOString().split('T')[0];
+                const cleanServerName = serverName.replace(/[^a-z0-9]/gi, '_');
+                const fileName = `BlockSpy_Report_${cleanServerName}_${date}.png`;
+
+                link.href = newCanvas.toDataURL('image/png');
                 link.download = fileName;
+                document.body.appendChild(link);
                 link.click();
-            });
-        }
+                document.body.removeChild(link);
+            };
+        });
+    }
         
         // 4. Lógica para exportar os dados do gráfico como CSV
         const exportCsvBtn = document.getElementById('export-chart-csv-btn');
@@ -1335,12 +1517,12 @@ function renderEventTimeline(events) {
     
     // Mapeia tipos de evento para ícones
     const iconMap = {
-        'SERVIDOR_ONLINE': '✅',
-        'SERVIDOR_OFFLINE': '❌',
-        'JOGADOR_ENTROU': '▶️',
-        'JOGADOR_SAIU': '◀️',
-        'NOVO_PICO_JOGADORES': '🏆',
-        'VERSAO_ALTERADA': '⚙️'
+        'SERVIDOR_ONLINE': '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
+        'SERVIDOR_OFFLINE': '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
+        'JOGADOR_ENTROU': '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>',
+        'JOGADOR_SAIU': '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>',
+        'NOVO_PICO_JOGADORES': '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>',
+        'VERSAO_ALTERADA': '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>'
     };
 
     events.forEach(event => {
@@ -1349,7 +1531,7 @@ function renderEventTimeline(events) {
 
         const item = document.createElement('div');
         item.className = 'timeline-item';
-
+        item.dataset.eventType = event.tipo_evento;
         const timestamp = new Date(event.timestamp);
         // Checagem para garantir que a data é válida
         if (isNaN(timestamp.getTime())) {

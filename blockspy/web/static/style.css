@@ -412,8 +412,9 @@ body {
 
 .settings-section h2,
 .add-option-card h2 {
-    margin: 0 0 16px 0;
-    font-size: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 12px;
 }
 
 .form-group {
@@ -479,10 +480,12 @@ body {
     text-align: center;
     cursor: pointer;
     display: block;
+    transition: all 0.2s ease-in-out;
 }
 
 .file-upload-area label:hover {
     border-color: var(--accent-blue);
+    background-color: var(--bg-input);
 }
 
 .file-upload-area input[type="file"] {
@@ -658,10 +661,21 @@ input:checked+.slider:before {
 
 .details-header {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    align-items: center; /* Alinha tudo verticalmente no centro */
+    gap: 20px; /* Cria um espaço entre o ícone, o texto e os botões */
     margin-bottom: 24px;
-    flex-shrink: 0;
+}
+/* Deixando o ícone GRANDE e garantindo que ele não encolha */
+#details-server-icon {
+    width: 80px;      /* Aumentado de 64px para 80px */
+    height: 80px;     /* Aumentado de 64px para 80px */
+    font-size: 3.5rem; /* Aumenta a letra de fallback também */
+    flex-shrink: 0; 
+}
+
+/* O truque para empurrar os botões para a direita */
+.header-spacer {
+    flex-grow: 1;
 }
 
 .back-button {
@@ -1376,7 +1390,215 @@ input:checked+.slider:before {
 #shutdown-button {
     margin-top: auto;   
 }
+#shutdown-button:hover {
+    background-color: rgba(239, 68, 68, 0.15); /* Fundo vermelho suave */
+    color: #f87171; /* Texto vermelho claro */
+}
 
 .nav-button .icon svg {
     display: block; /* Remove espaços extras que o SVG pode criar */
+}
+/* Em style.css, SUBSTITUA as regras antigas por estas */
+
+.details-name-and-meta {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 6px; /* Um espaçamento vertical agradável entre o nome e a linha de baixo */
+}
+
+.details-name-and-meta h1 {
+    margin: 0; /* Remove a margem padrão do h1 */
+    line-height: 1.2; /* Melhora a altura da linha para o nome do servidor */
+}
+
+.details-ip-subtitle {
+    margin: 0;
+}
+
+.details-type-subtitle {
+    margin: 0;
+    font-weight: 600;
+    font-size: 0.9rem;
+    
+    /* As 4 linhas abaixo recriam o "fundinho" e o formato de pílula */
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    padding: 3px 10px;
+    border-radius: 999px;
+    
+    align-self: flex-start; /* Impede que a pílula estique de largura */
+}
+.server-meta-line {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+/* Em style.css */
+
+/* Estilo para o novo botão de Filtros */
+.control-btn {
+    padding: 10px 16px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    background-color: var(--bg-card);
+    color: var(--text-secondary);
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+}
+.control-btn:hover, .control-btn.active {
+    background-color: var(--accent-blue);
+    color: #fff;
+    border-color: var(--accent-blue);
+}
+
+/* Container dos filtros */
+.filters-container {
+    background-color: rgba(0,0,0,0.1);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+    display: flex;
+    gap: 24px;
+    align-items: flex-end;
+    overflow: hidden;
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+    transition: all 0.4s ease-in-out;
+}
+
+.filters-container:not(.hidden) {
+    max-height: 100px; /* Altura máxima ao expandir */
+    opacity: 1;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex-grow: 1;
+}
+
+.filter-group label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.filter-group select {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background-color: var(--bg-input);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-family: var(--font-family);
+}
+.control-btn svg {
+    transition: transform 0.3s ease-in-out;
+}
+
+.control-btn.active svg {
+    transform: rotate(90deg);
+}
+.timeline-item-icon svg {
+    display: block;
+}
+.timeline-item[data-event-type="JOGADOR_ENTROU"] .timeline-item-icon svg,
+.timeline-item[data-event-type="SERVIDOR_ONLINE"] .timeline-item-icon svg {
+    color: var(--accent-green);
+}
+
+/* Eventos de Saída/Falha em Vermelho */
+.timeline-item[data-event-type="JOGADOR_SAIU"] .timeline-item-icon svg,
+.timeline-item[data-event-type="SERVIDOR_OFFLINE"] .timeline-item-icon svg {
+    color: var(--accent-red);
+}
+
+/* Outros Eventos */
+.timeline-item[data-event-type="NOVO_PICO_JOGADORES"] .timeline-item-icon svg {
+    color: var(--accent-orange);
+}
+.timeline-item[data-event-type="VERSAO_ALTERADA"] .timeline-item-icon svg {
+    color: var(--accent-blue);
+}
+/* Em style.css */
+
+/* Cria o fundo para os ícones de estatística */
+.stat-label .icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background-color: rgba(127, 127, 127, 0.1); /* Cor base */
+}
+
+/* Pinta cada fundo com a cor da sua estatística */
+.stat-item:nth-child(1) .icon-wrapper { background-color: rgba(34, 197, 94, 0.15); } /* Uptime (Verde) */
+.stat-item:nth-child(2) .icon-wrapper { background-color: rgba(249, 115, 22, 0.15); } /* Pico (Laranja) */
+.stat-item:nth-child(3) .icon-wrapper { background-color: rgba(59, 130, 246, 0.15); } /* Média (Azul) */
+
+.stat-label svg {
+    width: 22px;
+    height: 22px;
+}
+.stats-grid .stat-label .icon-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    margin-right: 12px; /* Adiciona um espaço elegante entre o ícone e o texto */
+}
+
+/* Cores de fundo e do ícone para cada item de estatística */
+.stats-grid .stat-item:nth-child(1) .icon-wrapper {
+    background-color: rgba(34, 197, 94, 0.15); /* Fundo Verde */
+    color: var(--accent-green); /* Ícone Verde */
+}
+.stats-grid .stat-item:nth-child(2) .icon-wrapper {
+    background-color: rgba(249, 115, 22, 0.15); /* Fundo Laranja */
+    color: var(--accent-orange); /* Ícone Laranja */
+}
+.stats-grid .stat-item:nth-child(3) .icon-wrapper {
+    background-color: rgba(59, 130, 246, 0.15); /* Fundo Azul */
+    color: var(--accent-blue); /* Ícone Azul */
+}
+.info-row span:last-child {
+    /* Mantenha os estilos que já existem aqui e adicione os 4 abaixo */
+    display: flex;
+    align-items: center;
+    justify-content: flex-end; /* Mantém o conteúdo alinhado à direita */
+    gap: 6px;                  /* Cria um espaço entre o ícone e o texto */
+}
+
+/* 2. Para o "badge" na página de detalhes */
+.details-type-subtitle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    
+    /* AQUI ESTÁ A MUDANÇA: Mais preenchimento em cima para "empurrar" o texto para baixo */
+    padding: 2px 12px 6px; 
+}
+
+/* Bônus: Garante que os SVGs nunca sejam "esmagados" se o espaço for pequeno */
+.info-row svg, .details-type-subtitle svg {
+    flex-shrink: 0;
 }

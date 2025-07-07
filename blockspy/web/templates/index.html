@@ -26,16 +26,25 @@
     <span>BlockSpy</span>
 </div>
             <nav>
-                <a href="#" id="nav-dashboard" class="nav-button active">
-                    <span class="icon">📊</span> Dashboard
-                </a>
-                <a href="#" id="nav-add-server" class="nav-button">
-                    <span class="icon">➕</span> Add Server
-                </a>
-                <a href="#" id="nav-settings" class="nav-button">
-                    <span class="icon">⚙️</span> Settings
-                </a>
-            </nav>
+    <a href="#" id="nav-dashboard" class="nav-button active">
+        <span class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </span>
+        Dashboard
+    </a>
+    <a href="#" id="nav-add-server" class="nav-button">
+        <span class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+        </span>
+        Add Server
+    </a>
+    <a href="#" id="nav-settings" class="nav-button">
+        <span class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </span>
+        Settings
+    </a>
+</nav>
             <a href="#" id="shutdown-button" class="nav-button shutdown-style">
     <span class="icon">
         <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -51,14 +60,43 @@
             <div id="dashboard-view">
                 <h1>Dashboard</h1>
                 <div class="dashboard-controls">
-                    <div class="search-bar">
-                        <input type="text" id="search-input" placeholder="Pesquisar por nome ou IP...">
-                    </div>
-                    <div class="sort-buttons">
-                        <button id="sort-by-name">Ordenar por Nome</button>
-                        <button id="sort-by-players">Ordenar por Jogadores</button>
-                    </div>
-                </div>
+    <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Pesquisar por nome ou IP...">
+    </div>
+    <button id="toggle-filters-btn" class="control-btn">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+        Filtros
+    </button>
+</div>
+
+<div id="filters-container" class="filters-container hidden">
+    <div class="filter-group">
+        <label for="filter-type">Tipo de Servidor:</label>
+        <select id="filter-type">
+            <option value="">Todos</option>
+            </select>
+    </div>
+    <div class="filter-group">
+    <label for="filter-flavor">Tipo de Software:</label>
+    <select id="filter-flavor">
+        <option value="">Todos</option>
+        </select>
+</div>
+<div class="filter-group">
+    <label for="filter-base-version">Versão Base:</label>
+    <select id="filter-base-version">
+        <option value="">Todas</option>
+        </select>
+</div>
+    <div class="filter-group">
+        <label for="sort-by">Ordenar por:</label>
+        <select id="sort-by">
+            <option value="nome_servidor-asc">Nome (A-Z)</option>
+            <option value="jogadores_online-desc">Jogadores (Maior)</option>
+            <option value="ping-asc">Ping (Menor)</option>
+        </select>
+    </div>
+</div>
                 <div id="server-list" class="server-grid"></div>
             </div>
 
@@ -66,7 +104,10 @@
                 <h1>Add New Server</h1>
                 <div class="add-server-options">
                     <div class="add-option-card">
-                        <h2>Adicionar um Servidor</h2>
+                        <h2>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    Adicionar um Servidor
+</h2>
                         <form id="single-add-form">
                             <div class="form-group">
                                 <label for="single-ip-input">Endereço do Servidor (IP ou domínio)</label>
@@ -79,7 +120,10 @@
                         <div id="single-add-log"></div>
                     </div>
                     <div class="add-option-card">
-                        <h2>Adicionar em Massa</h2>
+                        <h2>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    Adicionar em Massa
+</h2>
                         <form id="bulk-add-form">
                              <div class="form-group">
                                 <label for="bulk-ips-input">Lista de Endereços (um por linha)</label>
@@ -92,7 +136,10 @@
                         <div id="bulk-log"></div>
                     </div>
                     <div class="add-option-card">
-                        <h2>Importar de Arquivo (.txt)</h2>
+                        <h2>
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+    Importar de Arquivo (.txt)
+</h2>
                         <div class="file-upload-area">
                             <label for="file-import-input">Clique ou arraste um arquivo .txt aqui</label>
                             <input type="file" id="file-import-input" accept=".txt">
@@ -119,24 +166,33 @@
             
             <div id="details-view" style="display: none;">
                 <div class="details-header">
-                    <div class="details-title-group">
-                        <h1 id="details-server-name">Carregando...</h1>
-                        <p id="details-server-ip" class="details-ip-subtitle"></p>
-            </div>
-                    <div class="details-actions-group">
-                    <div class="actions-menu-container">
-                    <button id="export-actions-btn" class="card-action-btn" title="Salvar ou Exportar">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
-                    </button>
-                    <div id="export-dropdown-menu" class="dropdown-menu hidden">
-                    <a href="#" id="save-chart-image-btn">🖼️ Salvar como Imagem</a>
-                    <a href="#" id="export-chart-csv-btn">📄 Exportar Dados (.csv)</a>
-            </div>
+    <div id="details-server-icon" class="server-icon">
+        </div>
+
+    <div class="details-name-and-meta">
+    <h1 id="details-server-name">Carregando...</h1>
+    
+    <div class="server-meta-line">
+        <p id="details-server-ip" class="details-ip-subtitle"></p>
+        <p id="details-server-type" class="details-type-subtitle"></p>
     </div>
-    <button id="back-to-dashboard" class="back-button">&larr; Voltar ao Dashboard</button>
 </div>
 
-                </div>
+    <div class="header-spacer"></div>
+
+    <div class="details-actions-group">
+        <div class="actions-menu-container">
+            <button id="export-actions-btn" class="card-action-btn" title="Salvar ou Exportar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+            </button>
+            <div id="export-dropdown-menu" class="dropdown-menu hidden">
+                <a href="#" id="save-chart-image-btn">🖼️ Salvar como Imagem</a>
+                <a href="#" id="export-chart-csv-btn">📄 Exportar Dados (.csv)</a>
+            </div>
+        </div>
+        <button id="back-to-dashboard" class="back-button">&larr; Voltar ao Dashboard</button>
+    </div>
+</div>
                 <div class="details-grid">
 
 <div class="details-chart-container">
@@ -200,19 +256,34 @@
         <div class="details-players-container" id="details-stats-card">
             <h2>Estatísticas (24h)</h2>
             <div class="stats-grid">
-                <div class="stat-item">
-                    <span class="stat-label">📊 Uptime</span>
-                    <span class="stat-value" id="stat-uptime">--</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">🏆 Pico de Jogadores</span>
-                    <span class="stat-value" id="stat-peak">--</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">⚖️ Média de Jogadores</span>
-                    <span class="stat-value" id="stat-avg">--</span>
-                </div>
+    <div class="stat-item">
+        <span class="stat-label">
+            <div class="icon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
             </div>
+            Uptime
+        </span>
+        <span class="stat-value" id="stat-uptime">--</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-label">
+            <div class="icon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>
+            </div>
+            Pico de Jogadores
+        </span>
+        <span class="stat-value" id="stat-peak">--</span>
+    </div>
+    <div class="stat-item">
+        <span class="stat-label">
+            <div class="icon-wrapper">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            </div>
+            Média de Jogadores
+        </span>
+        <span class="stat-value" id="stat-avg">--</span>
+    </div>
+</div>
         </div>
         <div class="details-players-container" id="heatmap-card">
             <h2>Heatmap</h2>
