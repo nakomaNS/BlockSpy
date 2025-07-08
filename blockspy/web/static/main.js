@@ -960,7 +960,7 @@ async function initializeApp() {
                 { type: 'bar', label: 'Entrada/Saída', data: variacao, backgroundColor: variacao.map(v => v > 0 ? textPositive : (v < 0 ? textNegative : 'transparent')), borderColor: variacao.map(v => v > 0 ? textPositive : (v < 0 ? textNegative : 'transparent')), barThickness: 4, yAxisID: 'yVariacao', order: 3 },
                 { type: 'line', label: 'Lotação (%)', data: lotacao, borderColor: accentOrange, yAxisID: 'yLotacao', tension: 0.4, borderWidth: 3.5, pointRadius: 0, pointHoverRadius: 6, pointBackgroundColor: accentOrange, pointBorderColor: 'white', order: 2 },
                 { type: 'line', label: 'Ping (ms)', data: pings, borderColor: accentGreen, yAxisID: 'yPing', tension: 0.4, borderWidth: 3.5, pointRadius: 0, pointHoverRadius: 6, pointBackgroundColor: accentGreen, pointBorderColor: 'white', order: 1 },
-                { type: 'line', label: 'Jogadores', data: jogadores, borderColor: accentBlue, backgroundColor: 'transparent', yAxisID: 'yJogadores', tension: 0.4, borderWidth: 3.5, pointRadius: 0, pointHoverRadius: 6, pointBackgroundColor: accentBlue, pointBorderColor: 'white', order: 0 }
+                { type: 'line', label: 'Jogadores', data: jogadores, borderColor: accentBlue, backgroundColor: 'transparent', yAxisID: 'yJogadores', tension: 0.4, borderWidth: 3.5, pointRadius: 0, pointHoverRadius: 6, pointBackgroundColor: accentBlue, pointBorderColor: 'white', order: 0, clip: false }
             ]
         },
         options: {
