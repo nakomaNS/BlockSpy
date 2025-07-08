@@ -70,8 +70,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- ELEMENTOS GERAIS E DE NAVEGAÇÃO ---
     const serverListContainer = document.getElementById('server-list');
-    const UPDATE_INTERVAL = 10000;
-    const DETAILS_UPDATE_INTERVAL = 45000;
+    const UPDATE_INTERVAL = 20000;
+    const DETAILS_UPDATE_INTERVAL = 20000;
     let allServersCache = [];
     let currentOpenServer = null;
     let historyChart = null;
