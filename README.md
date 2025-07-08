@@ -31,7 +31,7 @@ Para usar o BlockSpy no Windows, basta baixar o executável. Não é necessário
 
 Clique no link abaixo para baixar a versão mais recente. Depois, é só colocar o arquivo em qualquer pasta e dar um duplo clique para executar!
 
-[**Baixar BlockSpy para Windows (.exe)**](https://github.com/nakomaNS/blockspy/releases/download/2.0/BlockSpy.exe)
+[**Baixar BlockSpy para Windows (.exe)**](https://github.com/nakomaNS/BlockSpy/releases/download/3.0/BlockSpy.exe)
 
 *Observação: Por ser um software de um desenvolvedor independente, o Windows pode exibir um aviso de segurança (SmartScreen). Se isso acontecer, clique em "Mais informações" e depois em "Executar assim mesmo".*
 
