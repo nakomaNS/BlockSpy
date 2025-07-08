@@ -12,6 +12,7 @@ from fastapi import WebSocket
 from blockspy.utils import determinar_tipo_servidor, get_country_from_ip
 from async_mcrcon import MinecraftClient
 from datetime import datetime, timezone
+from datetime import datetime, timedelta
 
 # --- EXCEÇÕES CUSTOMIZADAS PARA CLAREZA ---
 class RconAuthenticationError(Exception):
@@ -220,22 +221,29 @@ class MonitorService:
             self.logger.error(f"Ocorreu um erro grave ao atualizar o schema do banco de dados: {e}")
 
             # CALENDARIO DO HEATMAP #
-    async def get_calendar_heatmap_data(self, ip_servidor: str) -> list:
-        self.logger.info(f"Gerando dados de calendário para {ip_servidor}")
+    async def get_calendar_heatmap_data(self, ip_servidor: str, year: int, month: int) -> list:
+        self.logger.info(f"Gerando dados de calendário para {ip_servidor} (Mês: {month}/{year})")
         cursor = await self.db_connection.execute("SELECT id FROM servidores WHERE ip_servidor = ?", (ip_servidor,))
         server_info = await cursor.fetchone()
         if not server_info: return []
 
+        # Constrói o período de tempo para o mês solicitado
+        start_date = f"{year}-{month:02d}-01"
+        # Calcula o próximo mês para pegar o último dia do mês corrente
+        next_month_date = (datetime(year, month, 1) + timedelta(days=32)).replace(day=1)
+        end_date = next_month_date.strftime('%Y-%m-%d')
+
         query = """
             SELECT
-                strftime('%s', date(timestamp)) as timestamp,
+                -- Timestamp em segundos, necessário para o frontend
+                CAST(strftime('%s', date(timestamp)) AS INTEGER) as timestamp,
+                -- Média de jogadores, arredondada para inteiro
                 CAST(AVG(jogadores_online) AS INTEGER) as value
             FROM log_status
-            WHERE servidor_id = ? AND timestamp >= datetime('now', '-120 days')
+            WHERE servidor_id = ? AND timestamp >= ? AND timestamp < ?
             GROUP BY date(timestamp);
         """
-        cursor = await self.db_connection.execute(query, (server_info['id'],))
-        # O formato final é { timestamp_unix: valor }, que a nova biblioteca entende
+        cursor = await self.db_connection.execute(query, (server_info['id'], start_date, end_date))
         return [dict(row) for row in await cursor.fetchall()]
 
     async def _update_server_data(self, servidor_row):

@@ -1613,3 +1613,51 @@ input:checked+.slider:before {
 .info-row svg, .details-type-subtitle svg {
     flex-shrink: 0;
 }
+/* --- Estilos para Navegação do Heatmap --- */
+.heatmap-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    flex-shrink: 0;
+}
+
+#heatmap-month-label {
+    margin: 0;
+    font-size: 1.25rem; /* Tamanho do título "Heatmap" */
+    text-align: center;
+    flex-grow: 1; /* Faz o título ocupar o espaço do meio */
+}
+
+.heatmap-nav-btn {
+    background-color: var(--bg-input);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary); /* Cor do ícone */
+    width: 32px;   /* Largura do botão */
+    height: 32px;  /* Altura do botão */
+    border-radius: 6px; /* Bordas levemente arredondadas */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.heatmap-nav-btn:hover {
+    background-color: var(--accent-blue);
+    border-color: var(--accent-blue);
+    color: #fff; /* Ícone fica branco no hover */
+}
+
+.heatmap-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+    background-color: var(--bg-input);
+    border-color: var(--border-color);
+    color: var(--text-secondary); /* Garante que a cor do ícone também fique apagada */
+}
+
+/* Garante que o SVG dentro do botão não tenha estilos indesejados */
+.heatmap-nav-btn svg {
+    display: block;
+}

@@ -249,8 +249,9 @@ async def console_websocket_endpoint(websocket: WebSocket, server_ip: str):
         print(f"Cliente {client_id} desconectado do console.")
         
 @app.get("/api/servers/{server_ip}/calendar_heatmap")
-async def get_calendar_heatmap_endpoint(server_ip: str):
-    data = await service.get_calendar_heatmap_data(server_ip.strip())
+async def get_calendar_heatmap_endpoint(server_ip: str, year: int, month: int):
+    # Passa os parâmetros recebidos para a função do serviço
+    data = await service.get_calendar_heatmap_data(server_ip.strip(), year, month)
     return JSONResponse(content=data)
 
 @app.get("/api/servers/{server_ip}/events")

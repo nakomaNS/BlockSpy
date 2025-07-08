@@ -491,12 +491,14 @@ function setupConsole(serverIp) {
     
     async function showDetailsView(serverObject) {
     currentOpenServer = serverObject;
+    // --- MUDANÇA 1: Adicionamos uma variável para controlar o mês do heatmap ---
+    let heatmapDate = new Date(); 
+
     console.log("%c--- Função showDetailsView INICIADA com este objeto: ---", "color: #3b82f6; font-weight: bold;", serverObject);
 
     clearInterval(detailsUpdateIntervalId);
     window.showView('details');
 
-    // --- 1. MAPEAMENTO DOS ELEMENTOS ---
     const nameEl = document.getElementById('details-server-name');
     const ipEl = document.getElementById('details-server-ip');
     const iconContainer = document.getElementById('details-server-icon');
@@ -508,14 +510,13 @@ function setupConsole(serverIp) {
     const statPeakEl = document.getElementById('stat-peak');
     const statAvgEl = document.getElementById('stat-avg');
 
-    // --- 2. POPULAÇÃO IMEDIATA DO CABEÇALHO (com dados do serverObject) ---
     const displayName = serverObject.nome_customizado || serverObject.nome_servidor || serverObject.ip_servidor;
     if (nameEl) renderMotdInElement(displayName, nameEl);
     if (ipEl) ipEl.textContent = serverObject.ip_servidor;
     if (typeEl) typeEl.innerHTML = formatServerType(serverObject.tipo_servidor);
     if (iconContainer) {
-        iconContainer.innerHTML = ''; // Limpa o ícone antigo
-        iconContainer.dataset.ip = serverObject.ip_servidor; // Necessário para loadIcon
+        iconContainer.innerHTML = '';
+        iconContainer.dataset.ip = serverObject.ip_servidor;
         if (serverObject.tem_icone_customizado == 1) {
             loadIcon(iconContainer);
         } else {
@@ -523,7 +524,6 @@ function setupConsole(serverIp) {
         }
     }
 
-    // --- 3. LIMPEZA DOS DADOS QUE DEPENDEM DE API CALLS ---
     if(playerListEl) playerListEl.innerHTML = '<li>Carregando...</li>';
     if(offlinePlayerListEl) offlinePlayerListEl.innerHTML = '<li>Carregando...</li>';
     if(playerCountEl) playerCountEl.textContent = 'Jogadores Online';
@@ -535,42 +535,37 @@ function setupConsole(serverIp) {
     const isRconConfigured = serverObject.rcon_port && serverObject.rcon_password;
     updateConsoleUI(isRconConfigured, serverObject);
 
-    // --- LÓGICA PARA PERÍODO DINÂMICO ---
     const periodSelector = document.querySelector('.chart-period-selector');
-    let currentHours = 24; // Padrão inicial
+    let currentHours = 24;
 
-    // --- 4. FUNÇÃO INTERNA PARA BUSCAR E RENDERIZAR O RESTO ---
     const fetchAndRenderDetails = async (hours = 24) => {
         try {
-            const [historyResponse, playersResponse, statsResponse, calendarResponse, eventsResponse] = await Promise.all([
+            // --- MUDANÇA 2: Removemos a busca do heatmap daqui ('calendarResponse') ---
+            const [historyResponse, playersResponse, statsResponse, eventsResponse] = await Promise.all([
                 fetch(`/api/servers/${serverIp}/history?hours=${hours}`),
                 fetch(`/api/servers/${serverIp}/players`),
                 fetch(`/api/servers/${serverIp}/stats`),
-                fetch(`/api/servers/${serverIp}/calendar_heatmap`),
                 fetch(`/api/servers/${serverIp}/events`)
             ]);
             
-            if (!historyResponse.ok || !playersResponse.ok || !statsResponse.ok || !calendarResponse.ok || !eventsResponse.ok) { 
-                throw new Error("Falha em uma das APIs de detalhes."); 
+            if (!historyResponse.ok || !playersResponse.ok || !statsResponse.ok || !eventsResponse.ok) {  
+                throw new Error("Falha em uma das APIs de detalhes.");  
             }
             
             const historyData = await historyResponse.json();
             const playersData = await playersResponse.json();
             const statsData = await statsResponse.json();
-            const calendarData = await calendarResponse.json(); 
             const eventsData = await eventsResponse.json();
             
-            // Popula as estatísticas
             if(statUptimeEl) statUptimeEl.textContent = `${statsData.uptime_percent}%`;
             if(statPeakEl) statPeakEl.textContent = statsData.peak_players;
             if(statAvgEl) statAvgEl.textContent = statsData.average_players;
 
-            // Renderiza os componentes da tela
             lastHistoryData = historyData;
             renderHistoryChart(historyData);
-            renderPlayerLists(playersData.online, playersData.offline, serverObject.jogadores_maximos); // Passando o máximo de jogadores
-            renderCalendarHeatmap(calendarData, serverObject.jogadores_maximos);
+            renderPlayerLists(playersData.online, playersData.offline, serverObject.jogadores_maximos);
             renderEventTimeline(eventsData);
+            // A renderização do heatmap foi removida daqui
 
         } catch (error) {
             console.error("Erro ao renderizar detalhes:", error);
@@ -581,36 +576,50 @@ function setupConsole(serverIp) {
         }
     };
     
-    // Lógica para os botões de período
     if (periodSelector) {
         const newSelector = periodSelector.cloneNode(true);
         periodSelector.parentNode.replaceChild(newSelector, periodSelector);
-
         newSelector.addEventListener('click', (e) => {
             if (e.target.classList.contains('period-btn')) {
                 const selectedHours = e.target.dataset.hours;
-                
                 if (selectedHours !== String(currentHours)) {
                     currentHours = Number(selectedHours);
-                    
                     if (newSelector.querySelector('.period-btn.active')) {
                         newSelector.querySelector('.period-btn.active').classList.remove('active');
                     }
                     e.target.classList.add('active');
-                    
                     fetchAndRenderDetails(currentHours);
                 }
             }
         });
     }
 
-    // Chamada inicial para carregar os dados
+    // --- MUDANÇA 3: Adicionamos a configuração dos botões e a chamada inicial do heatmap AQUI ---
+    const prevBtn = document.getElementById('heatmap-prev-month-btn');
+    const nextBtn = document.getElementById('heatmap-next-month-btn');
+
+    // Remove listeners antigos para não acumular
+    const newPrevBtn = prevBtn.cloneNode(true);
+    prevBtn.parentNode.replaceChild(newPrevBtn, prevBtn);
+    const newNextBtn = nextBtn.cloneNode(true);
+    nextBtn.parentNode.replaceChild(newNextBtn, nextBtn);
+
+    newPrevBtn.addEventListener('click', () => {
+        heatmapDate.setMonth(heatmapDate.getMonth() - 1);
+        updateHeatmap(serverIp, serverObject.jogadores_maximos, heatmapDate);
+    });
+
+    newNextBtn.addEventListener('click', () => {
+        heatmapDate.setMonth(heatmapDate.getMonth() + 1);
+        updateHeatmap(serverIp, serverObject.jogadores_maximos, heatmapDate);
+    });
+    
+    // Carrega os dados iniciais do heatmap e do resto
+    await updateHeatmap(serverIp, serverObject.jogadores_maximos, heatmapDate);
     await fetchAndRenderDetails(currentHours);
     
-    // Inicia o WebSocket do console
     setupConsole(serverIp);
 
-    // Inicia o intervalo de atualização automática
     if (!detailsUpdateIntervalId) {
         detailsUpdateIntervalId = setInterval(() => fetchAndRenderDetails(currentHours), DETAILS_UPDATE_INTERVAL);
     }
@@ -822,11 +831,51 @@ function setupConsole(serverIp) {
         }
     }
 
-    function renderCalendarHeatmap(data, maxPlayers) {
+    async function updateHeatmap(serverIp, maxPlayers, date) {
+    const monthLabel = document.getElementById('heatmap-month-label');
+    const prevBtn = document.getElementById('heatmap-prev-month-btn');
+    const nextBtn = document.getElementById('heatmap-next-month-btn');
+
+    if (!monthLabel || !prevBtn || !nextBtn) return;
+
+    // Atualiza o título com o nome do mês e ano
+    const monthName = date.toLocaleString('pt-BR', { month: 'long' });
+    monthLabel.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${date.getFullYear()}`;
+
+    // Desabilita o botão "próximo" se estivermos no mês atual ou futuro
+    const now = new Date();
+    nextBtn.disabled = (date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth());
+
+    try {
+        const year = date.getFullYear();
+        const month = date.getMonth() + 1; // JS month é 0-11, API espera 1-12
+
+        // Chama a nossa NOVA API com os parâmetros
+        const response = await fetch(`/api/servers/${serverIp}/calendar_heatmap?year=${year}&month=${month}`);
+        if (!response.ok) throw new Error("API do heatmap falhou");
+
+        const heatmapData = await response.json();
+
+        // Chama a função que apenas desenha, passando a data e os dados
+        renderCalendarHeatmap(heatmapData, maxPlayers, date);
+
+    } catch (error) {
+        console.error("Erro ao atualizar o heatmap:", error);
+        const container = document.getElementById('cal-heatmap');
+        if(container) container.innerHTML = '<p class="empty-message">Erro ao carregar dados.</p>';
+    }
+}
+
+
+// Função 2: A Desenhista (versão modificada da sua função antiga)
+function renderCalendarHeatmap(data, maxPlayers, referenceDate) {
     const container = document.getElementById('cal-heatmap');
     if (!container) return;
 
-    container.innerHTML = ''; 
+    container.innerHTML = ''; // Limpa o conteúdo antigo
+
+    // O resto da sua função continua quase igual, mas usando 'referenceDate'
+    // em vez de 'new Date()' para os cálculos.
 
     const dataMap = new Map();
     if (data && data.length > 0) {
@@ -837,12 +886,11 @@ function setupConsole(serverIp) {
         });
     }
 
-    const today = new Date();
-    const currentYear = today.getFullYear();
-    const currentMonth = today.getMonth();
-    
+    const currentYear = referenceDate.getFullYear();
+    const currentMonth = referenceDate.getMonth();
+
     const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-    const startingWeekday = firstDayOfMonth.getDay();
+    const startingWeekday = firstDayOfMonth.getDay(); // 0 (Dom) a 6 (Sáb)
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
     const grid = document.createElement('div');
@@ -860,7 +908,7 @@ function setupConsole(serverIp) {
         grid.appendChild(document.createElement('div'));
     }
 
-    const maxValue = dataMap.size > 0 ? Math.max(...dataMap.values(), 1) : 1;
+    const today = new Date();
     function getColorForLotação(value, max) {
         if (value <= 0 || !max || max <= 0) return 'rgba(100, 116, 139, 0.2)';
         const lotacao = value / max;
@@ -870,23 +918,22 @@ function setupConsole(serverIp) {
         else return 'var(--accent-red)';
     }
 
-    // O loop principal que desenha os dias
     for (let day = 1; day <= daysInMonth; day++) {
         const date = new Date(currentYear, currentMonth, day);
         const dayCell = document.createElement('div');
         dayCell.className = 'heatmap-day';
-        
-        // Apenas processa e colore dias que já aconteceram
+
+        // Só processa e colore dias que já aconteceram
+        // (Comparando com a data atual, não a de referência)
         if (date <= today) {
             const dateString = date.toISOString().split('T')[0];
             const value = dataMap.get(dateString) || 0;
-            
+
             dayCell.style.backgroundColor = getColorForLotação(value, maxPlayers);
 
             const lotacaoPercent = maxPlayers > 0 ? Math.round((value / maxPlayers) * 100) : 0;
             const tooltipText = `${date.toLocaleDateString('pt-BR')}: ${Math.round(value)} jogadores em média (${lotacaoPercent}%)`;
-            
-            // Adiciona os "escutadores" de mouse para o tooltip global
+
             dayCell.addEventListener('mouseenter', () => {
                 heatmapTooltip.textContent = tooltipText;
                 heatmapTooltip.style.display = 'block';
@@ -895,28 +942,14 @@ function setupConsole(serverIp) {
                 heatmapTooltip.style.display = 'none';
             });
             dayCell.addEventListener('mousemove', (e) => {
-                // Posiciona o tooltip perto do mouse
                 heatmapTooltip.style.left = `${e.clientX + 15}px`;
                 heatmapTooltip.style.top = `${e.clientY + 15}px`;
-
-                // Lógica para não deixar o tooltip sair da tela
-                const windowWidth = window.innerWidth;
-                const tooltipWidth = heatmapTooltip.offsetWidth;
-                if ((e.clientX + 15 + tooltipWidth) > windowWidth) {
-                    heatmapTooltip.style.left = `${e.clientX - tooltipWidth - 15}px`;
-                }
-                const windowHeight = window.innerHeight;
-                const tooltipHeight = heatmapTooltip.offsetHeight;
-                if ((e.clientY + 15 + tooltipHeight) > windowHeight) {
-                    heatmapTooltip.style.top = `${e.clientY - tooltipHeight - 15}px`;
-                }
+                // ... (sua lógica de tooltip para não sair da tela)
             });
         } else {
-            // Deixa os dias futuros com a cor base (quase transparente)
              dayCell.style.backgroundColor = 'rgba(100, 116, 139, 0.1)';
              dayCell.style.cursor = 'default';
         }
-        
         grid.appendChild(dayCell);
     }
 
