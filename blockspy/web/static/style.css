@@ -450,6 +450,7 @@ body {
     cursor: pointer;
     transition: background-color 0.2s;
     align-self: flex-start;
+    margin-top: 10px; /* <--- ADICIONE ESTA LINHA MÁGICA */
 }
 
 .form-group button:hover {
