@@ -979,14 +979,22 @@ async function initializeApp() {
         // --- FIM DA ALTERAÇÃO ---
 
         if (onlinePlayers.length === 0) {
-            onlineListEl.innerHTML = '<li>Nenhum jogador online.</li>';
-        } else {
-            onlinePlayers.sort().forEach(player => {
-                const li = document.createElement('li');
-                li.textContent = player;
-                onlineListEl.appendChild(li);
-            });
-        }
+    onlineListEl.innerHTML = '<li>Nenhum jogador online.</li>';
+} else {
+    onlinePlayers.sort().forEach(playerName => { // Renomeei para 'playerName' por clareza
+        const li = document.createElement('li');
+        const headUrl = `https://minotar.net/avatar/${playerName}/28`;
+
+        // Usamos a MESMA estrutura que fizemos para a lista de offline
+        li.innerHTML = `
+            <div class="player-info-left">
+                <img src="${headUrl}" class="player-head" alt="${playerName}">
+                <span class="player-name">${playerName}</span>
+            </div>
+        `;
+        onlineListEl.appendChild(li);
+    });
+}
     }
 
         if (offlineListEl) {
@@ -994,12 +1002,25 @@ async function initializeApp() {
             if (offlinePlayers.length === 0) {
                 offlineListEl.innerHTML = '<li>Nenhum jogador visto recentemente.</li>';
             } else {
-                offlinePlayers.forEach(player => {
-                    const li = document.createElement('li');
-                    const lastSeenFormatted = formatLastSeen(player.ultima_vez_visto);
-                    li.innerHTML = `${player.nome_jogador} <span class="player-offline-time">- ${lastSeenFormatted}</span>`;
-                    offlineListEl.appendChild(li);
-                });
+    offlinePlayers.forEach(player => {
+    const li = document.createElement('li');
+    const playerName = player.nome_jogador;
+    const lastSeenFormatted = formatLastSeen(player.ultima_vez_visto);
+    
+    // A ÚNICA LINHA QUE MUDAMOS FOI ESTA AQUI:
+    const headUrl = `https://minotar.net/avatar/${playerName}/28`;
+
+    // O resto continua igual
+    li.innerHTML = `
+        <div class="player-info-left">
+            <img src="${headUrl}" class="player-head" alt="${playerName}">
+            <span class="player-name">${playerName}</span>
+        </div>
+        <span class="player-offline-time">${lastSeenFormatted}</span>
+    `;
+
+    offlineListEl.appendChild(li);
+});
             }
         }
     }
@@ -1811,9 +1832,12 @@ function setupSettingsPage() {
             const li = document.createElement('li');
             li.dataset.playerName = player.nome_jogador;
             li.innerHTML = `
-                <span>${player.nome_jogador}</span>
-                <button class="remove-watchlist-btn" title="Remover Jogador">&times;</button>
-            `;
+    <div class="player-info-left">
+        <img src="${headUrl}" class="player-head" alt="${playerName}">
+        <span class="player-name">${playerName}</span>
+    </div>
+    <span class="player-offline-time">${lastSeenFormatted}</span>
+`;
             watchlistPlayerList.appendChild(li);
         });
     }

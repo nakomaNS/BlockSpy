@@ -736,11 +736,6 @@ input:checked+.slider:before {
     overflow-y: auto;
 }
 
-#details-player-list li {
-    padding: 8px;
-    border-bottom: 1px solid var(--border-color);
-}
-
 #details-player-list li:last-child {
     border-bottom: none;
 }
@@ -1736,3 +1731,54 @@ input:checked+.slider:before {
     background-color: #fff;
     transform: translateX(24px);
 }
+/* --- Estilos para as listas de jogadores nos detalhes --- */
+
+/* Remove o 'bullet point' e transforma o item da lista em um container flexível */
+#details-offline-player-list li,
+#details-player-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    /* Adicionamos um padding na direita para não colar na borda */
+    padding: 8px 8px 8px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+#details-offline-player-list li:last-child,
+#details-player-list li:last-child {
+    border-bottom: none; /* Remove a borda APENAS do último item da lista */
+}
+/* Agrupa a imagem e o nome do jogador */
+.player-info-left {
+    display: flex;
+    align-items: center;
+    gap: 10px; /* Cria um espaço entre a cabeça e o nick */
+}
+
+/* Estilo para a cabeça do jogador */
+.player-head {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    flex-shrink: 0;
+    background-color: var(--bg-input);
+    margin-right: 8px; /* Adicionamos essa margem à direita */
+}
+
+/* Estilo para o nome do jogador */
+.player-name {
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+/* Estilo para o tempo (Visto por último) */
+.player-offline-time {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    white-space: nowrap; /* Impede que o texto quebre linha */
+}
+#details-player-list,
+#details-offline-player-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}   
