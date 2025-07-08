@@ -788,6 +788,103 @@ function setupConsole(serverIp) {
     }
 }
 
+const getOrCreateTooltip = (chart) => {
+    let tooltipEl = chart.canvas.parentNode.querySelector('#chartjs-tooltip');
+
+    if (!tooltipEl) {
+        tooltipEl = document.createElement('div');
+        tooltipEl.id = 'chartjs-tooltip';
+        tooltipEl.classList.add('chart-tooltip');
+        
+        const titleEl = document.createElement('div');
+        titleEl.classList.add('tooltip-title');
+        
+        const bodyEl = document.createElement('div');
+        bodyEl.classList.add('tooltip-body');
+
+        tooltipEl.appendChild(titleEl);
+        tooltipEl.appendChild(bodyEl);
+        chart.canvas.parentNode.appendChild(tooltipEl);
+    }
+    return tooltipEl;
+};
+
+const customTooltipHandler = (context) => {
+    const { chart, tooltip } = context;
+    const tooltipEl = getOrCreateTooltip(chart);
+
+    // Esconde se não tiver nada para mostrar
+    if (tooltip.opacity === 0) {
+        tooltipEl.style.opacity = 0;
+        return;
+    }
+
+    // Define o Título (a data)
+    if (tooltip.title) {
+        const titleEl = tooltipEl.querySelector('.tooltip-title');
+        titleEl.innerText = tooltip.title;
+    }
+
+    const bodyEl = tooltipEl.querySelector('.tooltip-body');
+    bodyEl.innerHTML = '';
+
+    tooltip.body.forEach((bodyItem, i) => {
+        const dataPoint = tooltip.dataPoints[i];
+        const datasetLabel = dataPoint.dataset.label;
+        const rawValue = dataPoint.raw;
+
+        let pointColor;
+
+        // ▼▼▼ A LÓGICA CORRIGIDA ESTÁ AQUI ▼▼▼
+        if (datasetLabel === 'Entrada/Saída') {
+            // Define a cor como VERMELHA, permanentemente.
+            pointColor = getComputedStyle(document.documentElement).getPropertyValue('--text-negative').trim();
+        } else {
+            // Para as outras, mantém a cor da linha do gráfico.
+            pointColor = dataPoint.dataset.borderColor;
+        }
+
+        // --- Construção do item do tooltip ---
+        const item = document.createElement('div');
+        item.classList.add('tooltip-item');
+
+        const point = document.createElement('span');
+        point.classList.add('tooltip-point');
+        point.style.backgroundColor = pointColor;
+        point.style.borderColor = pointColor;
+
+        const label = document.createElement('span');
+        label.classList.add('tooltip-label');
+        label.innerText = datasetLabel + ':';
+
+        const value = document.createElement('span');
+        value.classList.add('tooltip-value');
+
+        // Formatação do valor
+        if (datasetLabel === 'Lotação (%)') {
+            value.innerText = parseFloat(rawValue).toFixed(2) + '%';
+        } else if (datasetLabel === 'Ping (ms)') {
+            value.innerText = rawValue + 'ms';
+        } else if (datasetLabel === 'Entrada/Saída') {
+            value.innerText = (rawValue > 0 ? '+' : '') + rawValue;
+        } else {
+            value.innerText = rawValue;
+        }
+
+        item.appendChild(point);
+        item.appendChild(label);
+        item.appendChild(value);
+        bodyEl.appendChild(item);
+    });
+
+    const { offsetLeft: positionX, offsetTop: positionY } = chart.canvas;
+
+    // Posiciona o tooltip na tela
+    tooltipEl.style.opacity = 1;
+    tooltipEl.style.left = positionX + tooltip.caretX + 'px';
+    tooltipEl.style.top = positionY + tooltip.caretY + 'px';
+};
+
 // Dentro de initializeApp(), chame a nova função:
 async function initializeApp() {
     try {
@@ -884,36 +981,15 @@ async function initializeApp() {
                 yJogadores: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Jogadores', color: textColor }, min: 0, suggestedMax: 10, grid: { color: gridColor, borderDash: [2, 3], drawBorder: false }, ticks: { color: textColor, precision: 0 } },
                 yVariacao: { display: false }
             },
-            plugins: {
-                legend: { display: false },
-                tooltip: {
-                    enabled: true,
-                    backgroundColor: 'var(--bg-card)',
-                    titleColor: primaryColor,
-                    titleFont: { weight: 'bold', size: 14 },
-                    bodyColor: textColor,
-                    borderColor: gridColor,
-                    borderWidth: 1,
-                    padding: 12,
-                    cornerRadius: 8,
-                    usePointStyle: true,
-                    boxPadding: 4,
-                    callbacks: {
-                        label: function (context) {
-                            let label = context.dataset.label || '';
-                            if (label) { label += ': '; }
-                            if (context.parsed.y !== null) {
-                                let value = context.parsed.y;
-                                if (context.dataset.label === 'Lotação (%)') label += value.toFixed(2) + '%';
-                                else if (context.dataset.label === 'Ping (ms)') label += value + 'ms';
-                                else if (context.dataset.label.trim() === 'Entrada/Saída') label = (value > 0 ? '+' : '') + value + ' jogadores';
-                                else label += value;
-                            }
-                            return label;
-                        }
-                    }
-                },
+             plugins: {
+        legend: { display: false },
+        tooltip: {
+            enabled: false,
+            external: customTooltipHandler,
+            events: ['click'] // <-- ADICIONE ESTA LINHA MÁGICA
+        },
                 zoom: {
+                    // ... suas opções de zoom continuam aqui ...
                     pan: { enabled: true, mode: 'x', modifierKey: 'ctrl' },
                     zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
                     onZoomComplete: function ({ chart }) {
@@ -926,7 +1002,12 @@ async function initializeApp() {
             }
         }
     });
-
+    canvas.addEventListener('mouseleave', () => {
+        const tooltipEl = getOrCreateTooltip(historyChart);
+        if (tooltipEl) {
+            tooltipEl.style.opacity = 0;
+        }
+    });
     // Renderiza a legenda customizada (apenas na criação do gráfico)
     if (legendContainer) {
         historyChart.data.datasets.forEach((dataset, index) => {

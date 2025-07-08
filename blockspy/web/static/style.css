@@ -1782,3 +1782,68 @@ input:checked+.slider:before {
     padding: 0;
     margin: 0;
 }   
+/* --- Estilos para o Tooltip Customizado do Gráfico --- */
+
+.chart-tooltip {
+    /* Efeito de vidro e posicionamento */
+    background: rgba(47, 52, 61, 0.85); /* Fundo semi-transparente */
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border-color);
+    border-radius: 12px; /* Bordas mais arredondadas */
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    
+    /* Comportamento e transição */
+    opacity: 0; /* Começa invisível */
+    pointer-events: none; /* Não interfere com o mouse */
+    position: absolute;
+    transform: translate(-50%, -115%); /* Posiciona acima do ponto, com um respiro */
+    transition: all 0.2s ease-in-out;
+    min-width: 180px;
+}
+
+/* Título do Tooltip (a data) */
+.tooltip-title {
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+/* Corpo do Tooltip (a lista de dados) */
+.tooltip-body {
+    padding: 8px 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px; /* Espaço entre cada item da lista */
+}
+
+/* Cada item (linha) da lista de dados */
+.tooltip-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+/* A bolinha colorida */
+.tooltip-point {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+/* O texto do label (ex: "Jogadores:") */
+.tooltip-label {
+    color: var(--text-secondary);
+    margin-right: 6px;
+}
+
+/* O valor (ex: "1") */
+.tooltip-value {
+    color: var(--text-primary);
+    font-weight: 600;
+    margin-left: auto; /* Empurra o valor para a direita */
+}
