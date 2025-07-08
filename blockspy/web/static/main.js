@@ -629,7 +629,6 @@ function setupConsole(serverIp) {
     function setupSettingsPage() {
     // --- 1. DECLARAÇÃO DE TODOS OS ELEMENTOS ---
     // Todas as variáveis que vamos usar são declaradas aqui no início.
-    const webhookInput = document.getElementById('discord-webhook-input');
     const statusToggle = document.getElementById('notify-status-toggle');
     const peakToggle = document.getElementById('notify-peak-toggle');
     const milestoneToggle = document.getElementById('notify-milestone-toggle');

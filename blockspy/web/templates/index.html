@@ -134,97 +134,19 @@
             </div>
 
             <div id="settings-view" style="display: none;">
-                <h1>Settings</h1>
-                <div class="settings-section">
-                    <h2>Aparência</h2>
-                    <div class="theme-switch-wrapper">
-                        <span>Modo Escuro</span>
-                        <label class="theme-switch">
-                            <input type="checkbox" id="theme-toggle">
-                            <span class="slider"></span>
-                        </label>
-                        <span>Modo Claro</span>
-                    </div>
-                </div>
-                <div class="settings-section">
-    <h2>
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-        Notificações via Discord
-    </h2>
-    <div class="form-group">
-    <label for="discord-webhook-input">URL do Webhook do Discord</label>
-    <input type="text" id="discord-webhook-input" placeholder="Cole a URL do seu webhook aqui">
-    <p id="webhook-error-message" class="error-message" style="display: none; margin-top: 8px;"></p>
-    <small>Deixe em branco para desativar todas as notificações do Discord.</small>
-</div>
-
-    <div class="notification-setting">
-        <div class="setting-label">
-            <h4>Status do Servidor</h4>
-            <p>Avisar quando o servidor ficar online ou offline.</p>
+    <h1>Settings</h1>
+    <div class="settings-section">
+        <h2>Aparência</h2>
+        <div class="theme-switch-wrapper">
+            <span>Modo Escuro</span>
+            <label class="theme-switch">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider"></span>
+            </label>
+            <span>Modo Claro</span>
         </div>
-        <label class="toggle-switch">
-            <input type="checkbox" id="notify-status-toggle">
-            <span class="toggle-slider"></span>
-        </label>
-    </div>
-
-    <div class="notification-setting">
-        <div class="setting-label">
-            <h4>Pico de Jogadores</h4>
-            <p>Avisar quando um novo recorde de jogadores online (24h) for atingido.</p>
-        </div>
-        <label class="toggle-switch">
-            <input type="checkbox" id="notify-peak-toggle">
-            <span class="toggle-slider"></span>
-        </label>
-    </div>
-
-    <div class="notification-setting">
-        <div class="setting-label">
-            <h4>Marcos de Lotação</h4>
-            <p>Avisar quando o servidor atingir 25%, 50%, 75% e 100% da capacidade.</p>
-        </div>
-        <label class="toggle-switch">
-            <input type="checkbox" id="notify-milestone-toggle">
-            <span class="toggle-slider"></span>
-        </label>
-    </div>
-
-    <div class="notification-setting">
-        <div class="setting-label">
-            <h4>Boas-vindas a Novos Jogadores</h4>
-            <p>Avisar quando um jogador entrar no servidor pela primeira vez.</p>
-        </div>
-        <label class="toggle-switch">
-            <input type="checkbox" id="notify-first-join-toggle">
-            <span class="toggle-slider"></span>
-        </label>
-    </div>
-    <div class="notification-setting-complex">
-        <h4>Monitorar Jogador Específico</h4>
-        <p class="text-secondary">Receba um alerta sempre que um jogador da sua lista entrar no servidor.</p>
-        <div class="watchlist-form">
-    <input type="text" id="watchlist-player-input" placeholder="Digite o nome do jogador">
-    <button id="add-watchlist-player-btn">Adicionar</button>
-</div>
-<p id="watchlist-error-message" class="error-message" style="display: none; margin-bottom: 16px;"></p>
-        <ul id="watchlist-player-list">
-            </ul>
-    </div>
-    
-    <div class="form-group">
-        <button id="save-settings-btn" style="margin-top: 20px;">Salvar Configurações</button>
     </div>
 </div>
-                <div class="settings-footer">
-                    <div class="settings-section uninstall-section">
-                        <h2>Gerenciamento</h2>
-                        <p class="text-secondary" style="margin-top: -10px; margin-bottom: 20px;">Esta ação é permanente e removerá todos os dados e arquivos do BlockSpy.</p>
-                        <button id="uninstall-btn" class="uninstall-button">Desinstalar BlockSpy</button>
-                    </div>
-                </div>
-            </div>
 
             <div id="details-view" style="display: none;">
                 <div class="details-header">
