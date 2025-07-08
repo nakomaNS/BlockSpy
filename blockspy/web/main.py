@@ -96,6 +96,15 @@ class ConnectionManager:
 
 manager = ConnectionManager()
 
+class SettingsUpdate(BaseModel):
+    discord_webhook_url: Optional[str] = None
+    notificar_online_offline: Optional[bool] = None
+    notificar_pico_jogadores: Optional[bool] = None
+    notificar_marcos_lotacao: Optional[bool] = None
+    notificar_primeira_entrada: Optional[bool] = None
+
+class WatchlistPlayer(BaseModel):
+    nome_jogador: str
 
 # --- ENDPOINTS HTTP ---
 
@@ -269,3 +278,38 @@ async def shutdown_server():
     # um processo, o que é ideal para um .exe.
     os._exit(0)
     return {"message": "Servidor está desligando."}
+
+@app.get("/api/settings/global")
+async def get_global_settings():
+    # Simplificação: assume que o webhook é o mesmo para todos os servidores.
+    # Pega a configuração do primeiro servidor adicionado.
+    settings = await service.get_first_server_settings()
+    return JSONResponse(content=settings)
+
+@app.post("/api/settings/global")
+async def save_global_settings(settings: SettingsUpdate):
+    # Salva as configurações para TODOS os servidores de uma vez
+    success = await service.save_all_servers_settings(settings)
+    if not success:
+        raise HTTPException(status_code=500, detail="Falha ao salvar configurações.")
+    return {"message": "Configurações salvas com sucesso."}
+
+@app.get("/api/watchlist/{server_ip}")
+async def get_watchlist(server_ip: str):
+    watchlist = await service.get_watchlist_for_server(server_ip)
+    return JSONResponse(content=watchlist)
+
+@app.post("/api/watchlist/{server_ip}")
+async def add_to_watchlist(server_ip: str, player: WatchlistPlayer):
+    try:
+        result = await service.add_player_to_watchlist(server_ip, player.nome_jogador)
+        return JSONResponse(content=result, status_code=201)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.delete("/api/watchlist/{server_ip}/{player_name}")
+async def remove_from_watchlist(server_ip: str, player_name: str):
+    success = await service.remove_player_from_watchlist(server_ip, player_name)
+    if not success:
+        raise HTTPException(status_code=404, detail="Jogador não encontrado na watchlist.")
+    return {"message": "Jogador removido da watchlist."}

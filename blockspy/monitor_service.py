@@ -142,27 +142,9 @@ class MonitorService:
         
     async def _criar_tabelas(self):
         self.logger.info("Verificando e criando a estrutura final do banco de dados...")
-        await self.db_connection.execute("""
-            CREATE TABLE IF NOT EXISTS servidores (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                ip_servidor TEXT UNIQUE NOT NULL,
-                nome_servidor TEXT,
-                nome_customizado TEXT,
-                status TEXT DEFAULT 'pending',
-                versao TEXT,
-                jogadores_online INTEGER DEFAULT 0,
-                jogadores_maximos INTEGER DEFAULT 0,
-                ping REAL DEFAULT 0,
-                localizacao TEXT,
-                tem_icone_customizado INTEGER DEFAULT 0,
-                ultima_verificacao TEXT,
-                tipo_servidor TEXT,
-                pausado INTEGER DEFAULT 0,
-                caminho_servidor TEXT DEFAULT NULL,
-                rcon_port INTEGER,
-                rcon_password TEXT
-            );
-        """)
+        
+        # ... (código que cria a tabela 'servidores') ...
+        
         await self.db_connection.execute("""
             CREATE TABLE IF NOT EXISTS log_status (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -195,30 +177,115 @@ class MonitorService:
                 FOREIGN KEY(servidor_id) REFERENCES servidores(id) ON DELETE CASCADE
             );
         """)
+        await self.db_connection.execute("""
+            CREATE TABLE IF NOT EXISTS jogadores_vigiados (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                servidor_id INTEGER NOT NULL,
+                nome_jogador TEXT NOT NULL,
+                FOREIGN KEY(servidor_id) REFERENCES servidores(id) ON DELETE CASCADE,
+                UNIQUE(servidor_id, nome_jogador)
+            );
+        """)
+        # Dica: movi o commit() para o final, só precisamos de um.
         await self.db_connection.commit()
 
     async def _atualizar_schema(self):
         """Verifica e aplica atualizações necessárias no schema do banco de dados."""
         try:
-            self.logger.info("Verificando schema do banco de dados...")
+            self.logger.info("Verificando schema do banco de dados para atualizações...")
             cursor = await self.db_connection.execute("PRAGMA table_info(servidores);")
             columns = [row[1] for row in await cursor.fetchall()]
 
-            if 'nome_customizado' not in columns:
-                self.logger.info("Adicionando coluna 'nome_customizado'...")
-                await self.db_connection.execute('ALTER TABLE servidores ADD COLUMN nome_customizado TEXT;')
-                self.logger.info("Coluna 'nome_customizado' adicionada.")
+            colunas_para_adicionar = {
+                'nome_customizado': 'TEXT',
+                'caminho_servidor': 'TEXT DEFAULT NULL',
+                'discord_webhook_url': 'TEXT',
+                'notificar_online_offline': 'INTEGER DEFAULT 0',
+                'notificar_pico_jogadores': 'INTEGER DEFAULT 0',
+                'notificar_marcos_lotacao': 'INTEGER DEFAULT 0',
+                'notificar_primeira_entrada': 'INTEGER DEFAULT 0',
+                'ultimo_marco_notificado': 'INTEGER DEFAULT 0'
+            }
 
-            if 'caminho_servidor' not in columns:
-                self.logger.info("Adicionando coluna 'caminho_servidor' para o RCON/Log...")
-                await self.db_connection.execute('ALTER TABLE servidores ADD COLUMN caminho_servidor TEXT DEFAULT NULL;')
-                self.logger.info("Coluna 'caminho_servidor' adicionada com sucesso!")
-
+            for col, tipo in colunas_para_adicionar.items():
+                if col not in columns:
+                    self.logger.info(f"Adicionando coluna '{col}' à tabela 'servidores'...")
+                    await self.db_connection.execute(f'ALTER TABLE servidores ADD COLUMN {col} {tipo};')
+                    self.logger.info(f"Coluna '{col}' adicionada com sucesso.")
+            
             await self.db_connection.commit()
             self.logger.info("Schema verificado e atualizado!")
 
         except Exception as e:
             self.logger.error(f"Ocorreu um erro grave ao atualizar o schema do banco de dados: {e}")
+
+    # --- FUNÇÕES NOVAS PARA A API DE CONFIGURAÇÕES ---
+
+    async def get_first_server_settings(self) -> dict:
+        """Busca as configurações do primeiro servidor para usar como base global."""
+        cursor = await self.db_connection.execute("SELECT * FROM servidores ORDER BY id ASC LIMIT 1")
+        row = await cursor.fetchone()
+        return dict(row) if row else {}
+
+    async def save_all_servers_settings(self, settings) -> bool:
+        """Salva as configurações de notificação para todos os servidores."""
+        try:
+            settings_dict = settings.model_dump(exclude_unset=True)
+            if not settings_dict:
+                return True # Nenhuma alteração a ser feita
+            
+            query_parts = [f'{key} = ?' for key in settings_dict.keys()]
+            query = f"UPDATE servidores SET {', '.join(query_parts)}"
+            params = list(settings_dict.values())
+            
+            await self.db_connection.execute(query, tuple(params))
+            await self.db_connection.commit()
+            return True
+        except Exception as e:
+            self.logger.error(f"Erro ao salvar configurações globais: {e}")
+            return False
+
+    async def get_watchlist_for_server(self, server_ip: str) -> list:
+        """Busca a lista de jogadores vigiados para um servidor."""
+        cursor = await self.db_connection.execute(
+            """SELECT jv.nome_jogador FROM jogadores_vigiados jv
+               JOIN servidores s ON s.id = jv.servidor_id
+               WHERE s.ip_servidor = ?""",
+            (server_ip,)
+        )
+        rows = await cursor.fetchall()
+        return [dict(row) for row in rows]
+
+    async def add_player_to_watchlist(self, server_ip: str, player_name: str) -> dict:
+        """Adiciona um jogador à lista de vigilância de um servidor."""
+        cursor = await self.db_connection.execute("SELECT id FROM servidores WHERE ip_servidor = ?", (server_ip,))
+        server_row = await cursor.fetchone()
+        if not server_row:
+            raise ValueError("Servidor não encontrado.")
+        
+        try:
+            await self.db_connection.execute(
+                "INSERT INTO jogadores_vigiados (servidor_id, nome_jogador) VALUES (?, ?)",
+                (server_row['id'], player_name)
+            )
+            await self.db_connection.commit()
+            return {"message": "Jogador adicionado à watchlist."}
+        except Exception:
+            raise ValueError(f"O jogador '{player_name}' já está na watchlist.")
+
+    async def remove_player_from_watchlist(self, server_ip: str, player_name: str) -> bool:
+        """Remove um jogador da lista de vigilância de um servidor."""
+        cursor = await self.db_connection.execute("SELECT id FROM servidores WHERE ip_servidor = ?", (server_ip,))
+        server_row = await cursor.fetchone()
+        if not server_row:
+            return False
+            
+        delete_cursor = await self.db_connection.execute(
+            "DELETE FROM jogadores_vigiados WHERE servidor_id = ? AND nome_jogador = ?",
+            (server_row['id'], player_name)
+        )
+        await self.db_connection.commit()
+        return delete_cursor.rowcount > 0
 
             # CALENDARIO DO HEATMAP #
     async def get_calendar_heatmap_data(self, ip_servidor: str, year: int, month: int) -> list:

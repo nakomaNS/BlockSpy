@@ -626,7 +626,181 @@ function setupConsole(serverIp) {
 }
 
 
+    function setupSettingsPage() {
+    // --- 1. DECLARAÇÃO DE TODOS OS ELEMENTOS ---
+    // Todas as variáveis que vamos usar são declaradas aqui no início.
+    const webhookInput = document.getElementById('discord-webhook-input');
+    const statusToggle = document.getElementById('notify-status-toggle');
+    const peakToggle = document.getElementById('notify-peak-toggle');
+    const milestoneToggle = document.getElementById('notify-milestone-toggle');
+    const firstJoinToggle = document.getElementById('notify-first-join-toggle');
+    const saveButton = document.getElementById('save-settings-btn');
 
+    const watchlistPlayerInput = document.getElementById('watchlist-player-input');
+    const addWatchlistPlayerBtn = document.getElementById('add-watchlist-player-btn');
+    const watchlistPlayerList = document.getElementById('watchlist-player-list');
+    
+    let currentServerForWatchlist = null; // Guarda o IP do servidor para a watchlist
+
+    // --- 2. FUNÇÕES AUXILIARES ---
+    // Função para carregar todas as configurações da API
+    async function loadSettings() {
+        try {
+            const response = await fetch('/api/settings/global');
+            if (!response.ok) {
+                console.error("API de configurações não encontrada (404). O backend está com os endpoints corretos?");
+                return;
+            };
+            const settings = await response.json();
+            
+            if (settings) {
+                webhookInput.value = settings.discord_webhook_url || '';
+                statusToggle.checked = settings.notificar_online_offline;
+                peakToggle.checked = settings.notificar_pico_jogadores;
+                milestoneToggle.checked = settings.notificar_marcos_lotacao;
+                firstJoinToggle.checked = settings.notificar_primeira_entrada;
+            }
+
+            if (allServersCache.length > 0) {
+                currentServerForWatchlist = allServersCache[0].ip_servidor;
+                const wlResponse = await fetch(`/api/watchlist/${currentServerForWatchlist}`);
+                if (!wlResponse.ok) return;
+                const watchlist = await wlResponse.json();
+                renderWatchlist(watchlist);
+            }
+        } catch (error) {
+            console.error("Erro ao carregar configurações:", error);
+        }
+    }
+
+    // Função para renderizar a lista de jogadores vigiados
+    function renderWatchlist(players) {
+        watchlistPlayerList.innerHTML = '';
+        players.forEach(player => {
+            const li = document.createElement('li');
+            li.dataset.playerName = player.nome_jogador;
+            li.innerHTML = `
+                <span>${player.nome_jogador}</span>
+                <button class="remove-watchlist-btn" title="Remover Jogador">&times;</button>
+            `;
+            watchlistPlayerList.appendChild(li);
+        });
+    }
+
+    // --- 3. CONFIGURAÇÃO DOS EVENTOS ---
+    // A ordem aqui é crucial. Os elementos precisam existir antes de adicionarmos eventos a eles.
+
+    // Evento para salvar as configurações gerais
+    if (saveButton) {
+        saveButton.addEventListener('click', async () => {
+            saveButton.textContent = 'Salvando...';
+            const settingsToSave = {
+                discord_webhook_url: webhookInput.value.trim(),
+                notificar_online_offline: statusToggle.checked,
+                notificar_pico_jogadores: peakToggle.checked,
+                notificar_marcos_lotacao: milestoneToggle.checked,
+                notificar_primeira_entrada: firstJoinToggle.checked,
+            };
+            try {
+                await fetch('/api/settings/global', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settingsToSave)
+                });
+                alert('Configurações salvas com sucesso!');
+            } catch (error) {
+                alert('Falha ao salvar configurações.');
+            } finally {
+                saveButton.textContent = 'Salvar Configurações';
+            }
+        });
+    }
+
+    // Evento para adicionar jogador à watchlist
+    if (addWatchlistPlayerBtn) {
+        addWatchlistPlayerBtn.addEventListener('click', async () => {
+            const webhookURL = webhookInput.value.trim();
+            if (!webhookURL) {
+                alert('Por favor, adicione uma URL de Webhook do Discord antes de adicionar jogadores!');
+                webhookInput.focus();
+                return;
+            }
+
+            const playerName = watchlistPlayerInput.value.trim();
+            if (!playerName) {
+                alert('Por favor, digite o nome de um jogador para adicionar.');
+                watchlistPlayerInput.focus();
+                return;
+            }
+
+            if (!currentServerForWatchlist) {
+                alert('Não há servidores sendo monitorados para associar a este jogador.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/watchlist/${currentServerForWatchlist}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome_jogador: playerName })
+                });
+                if (response.ok) {
+                    watchlistPlayerInput.value = '';
+                    const wlResponse = await fetch(`/api/watchlist/${currentServerForWatchlist}`);
+                    const watchlist = await wlResponse.json();
+                    renderWatchlist(watchlist);
+                } else {
+                    const error = await response.json();
+                    alert(`Erro: ${error.detail}`);
+                }
+            } catch (error) {
+                alert('Falha ao adicionar jogador.');
+            }
+        });
+    }
+
+    // Evento para remover jogador da watchlist (usando delegação de evento)
+    if (watchlistPlayerList) {
+        watchlistPlayerList.addEventListener('click', async (e) => {
+            if (e.target && e.target.classList.contains('remove-watchlist-btn')) {
+                const playerLi = e.target.closest('li');
+                const playerName = playerLi.dataset.playerName;
+                if (!playerName || !currentServerForWatchlist) return;
+
+                if (confirm(`Tem certeza que deseja parar de monitorar ${playerName}?`)) {
+                    try {
+                        const response = await fetch(`/api/watchlist/${currentServerForWatchlist}/${playerName}`, { method: 'DELETE' });
+                        if (response.ok) {
+                            playerLi.remove();
+                        } else {
+                            alert('Falha ao remover jogador.');
+                        }
+                    } catch (error) {
+                        alert('Falha ao remover jogador.');
+                    }
+                }
+            }
+        });
+    }
+
+    // Carrega as configurações quando a aba de settings for mostrada
+    if (navButtons.settings) {
+        navButtons.settings.addEventListener('click', loadSettings);
+    }
+}
+
+// Dentro de initializeApp(), chame a nova função:
+async function initializeApp() {
+    try {
+        // ... (outras chamadas de setup)
+        setupAddForms();
+        setupCardActions();
+        setupSettingsPage(); // <-- ADICIONE A CHAMADA AQUI
+        // ... (resto da função)
+    } catch (error) {
+        // ...
+    }
+}
 
     function renderHistoryChart(data) {
     const canvas = document.getElementById('history-chart');
@@ -1548,15 +1722,11 @@ function renderEventTimeline(events) {
         console.error("Elemento da timeline '#timeline-container' não encontrado.");
         return;
     }
-
-    container.innerHTML = ''; // Limpa a timeline antiga
-
+    container.innerHTML = '';
     if (!events || events.length === 0) {
         container.innerHTML = '<p class="empty-message">Nenhum evento registrado recentemente.</p>';
         return;
     }
-    
-    // Mapeia tipos de evento para ícones
     const iconMap = {
         'SERVIDOR_ONLINE': '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
         'SERVIDOR_OFFLINE': '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
@@ -1565,39 +1735,228 @@ function renderEventTimeline(events) {
         'NOVO_PICO_JOGADORES': '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>',
         'VERSAO_ALTERADA': '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>'
     };
-
     events.forEach(event => {
-        // Checagem de segurança para garantir que o evento é válido
         if (!event || !event.timestamp || !event.tipo_evento) return;
-
         const item = document.createElement('div');
         item.className = 'timeline-item';
         item.dataset.eventType = event.tipo_evento;
         const timestamp = new Date(event.timestamp);
-        // Checagem para garantir que a data é válida
         if (isNaN(timestamp.getTime())) {
             console.error("Timestamp inválido recebido no evento:", event);
             return;
         }
-
         const formattedTime = timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         const formattedDate = timestamp.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
-
-        const icon = iconMap[event.tipo_evento] || '•'; // Pega o ícone ou usa um padrão
-
-        // Usamos textContent para os detalhes para evitar problemas com HTML injection
+        const icon = iconMap[event.tipo_evento] || '•';
         const detailsText = event.detalhes || '';
-
         item.innerHTML = `
             <div class="timeline-item-icon">${icon}</div>
             <div class="timeline-item-timestamp">${formattedDate} às ${formattedTime}</div>
             <div class="timeline-item-details"></div>
         `;
         item.querySelector('.timeline-item-details').textContent = detailsText;
-
         container.appendChild(item);
     });
 }
 
-    initializeApp();
-});
+function setupSettingsPage() {
+    // --- 1. SELEÇÃO DE TODOS OS ELEMENTOS DA PÁGINA ---
+    const webhookInput = document.getElementById('discord-webhook-input');
+    const statusToggle = document.getElementById('notify-status-toggle');
+    const peakToggle = document.getElementById('notify-peak-toggle');
+    const milestoneToggle = document.getElementById('notify-milestone-toggle');
+    const firstJoinToggle = document.getElementById('notify-first-join-toggle');
+    const saveButton = document.getElementById('save-settings-btn');
+    const watchlistPlayerInput = document.getElementById('watchlist-player-input');
+    const addWatchlistPlayerBtn = document.getElementById('add-watchlist-player-btn');
+    const watchlistPlayerList = document.getElementById('watchlist-player-list');
+    const webhookErrorMsg = document.getElementById('webhook-error-message');
+    const watchlistErrorMsg = document.getElementById('watchlist-error-message');
+
+    let currentServerForWatchlist = null;
+
+    // --- 2. FUNÇÕES AUXILIARES ---
+    async function loadSettings() {
+        try {
+            const response = await fetch('/api/settings/global');
+            if (!response.ok) {
+                console.error("API de configurações não encontrada (404). O backend (main.py) está com os endpoints corretos?");
+                return;
+            }
+            const settings = await response.json();
+            
+            if (settings && Object.keys(settings).length > 0) {
+                webhookInput.value = settings.discord_webhook_url || '';
+                statusToggle.checked = settings.notificar_online_offline;
+                peakToggle.checked = settings.notificar_pico_jogadores;
+                milestoneToggle.checked = settings.notificar_marcos_lotacao;
+                firstJoinToggle.checked = settings.notificar_primeira_entrada;
+            }
+
+            if (allServersCache.length > 0) {
+                currentServerForWatchlist = allServersCache[0].ip_servidor;
+                const wlResponse = await fetch(`/api/watchlist/${currentServerForWatchlist}`);
+                if (wlResponse.ok) {
+                    const watchlist = await wlResponse.json();
+                    renderWatchlist(watchlist);
+                }
+            }
+        } catch (error) {
+            console.error("Erro ao carregar configurações:", error);
+        }
+    }
+
+    function renderWatchlist(players) {
+        watchlistPlayerList.innerHTML = '';
+        players.forEach(player => {
+            const li = document.createElement('li');
+            li.dataset.playerName = player.nome_jogador;
+            li.innerHTML = `
+                <span>${player.nome_jogador}</span>
+                <button class="remove-watchlist-btn" title="Remover Jogador">&times;</button>
+            `;
+            watchlistPlayerList.appendChild(li);
+        });
+    }
+
+    // --- 3. CONFIGURAÇÃO DOS EVENTOS ---
+    if (saveButton) {
+        saveButton.addEventListener('click', async () => {
+            saveButton.disabled = true;
+            saveButton.textContent = 'Salvando...';
+            const settingsToSave = {
+                discord_webhook_url: webhookInput.value.trim(),
+                notificar_online_offline: statusToggle.checked,
+                notificar_pico_jogadores: peakToggle.checked,
+                notificar_marcos_lotacao: milestoneToggle.checked,
+                notificar_primeira_entrada: firstJoinToggle.checked,
+            };
+            try {
+                const response = await fetch('/api/settings/global', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(settingsToSave)
+                });
+                if (response.ok) {
+                    alert('Configurações salvas com sucesso!');
+                } else {
+                    alert('Falha ao salvar configurações.');
+                }
+            } catch (error) {
+                console.error("Erro ao salvar:", error);
+                alert('Falha ao salvar configurações.');
+            } finally {
+                saveButton.disabled = false;
+                saveButton.textContent = 'Salvar Configurações';
+            }
+        });
+    }
+
+    if (addWatchlistPlayerBtn) {
+        addWatchlistPlayerBtn.addEventListener('click', async () => {
+            const webhookURL = webhookInput.value.trim();
+            if (!webhookURL) {
+                webhookErrorMsg.textContent = 'É necessário configurar uma URL de Webhook primeiro.';
+                webhookErrorMsg.style.display = 'block';
+                return;
+            }
+            const playerName = watchlistPlayerInput.value.trim();
+            if (!playerName) {
+                watchlistErrorMsg.textContent = 'Por favor, digite o nome de um jogador.';
+                watchlistErrorMsg.style.display = 'block';
+                return;
+            }
+            if (!currentServerForWatchlist) {
+                watchlistErrorMsg.textContent = 'Nenhum servidor encontrado para adicionar o jogador.';
+                watchlistErrorMsg.style.display = 'block';
+                return;
+            }
+            try {
+                const response = await fetch(`/api/watchlist/${currentServerForWatchlist}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome_jogador: playerName })
+                });
+                if (response.ok) {
+                    watchlistPlayerInput.value = '';
+                    const wlResponse = await fetch(`/api/watchlist/${currentServerForWatchlist}`);
+                    const watchlist = await wlResponse.json();
+                    renderWatchlist(watchlist);
+                } else {
+                    const error = await response.json();
+                    watchlistErrorMsg.textContent = error.detail;
+                    watchlistErrorMsg.style.display = 'block';
+                }
+            } catch (error) {
+                watchlistErrorMsg.textContent = 'Falha ao conectar com o servidor.';
+                watchlistErrorMsg.style.display = 'block';
+            }
+        });
+    }
+
+    if (watchlistPlayerList) {
+        watchlistPlayerList.addEventListener('click', async (e) => {
+            if (e.target && e.target.classList.contains('remove-watchlist-btn')) {
+                const playerLi = e.target.closest('li');
+                const playerName = playerLi.dataset.playerName;
+                if (!playerName || !currentServerForWatchlist) return;
+                if (confirm(`Tem certeza que deseja parar de monitorar ${playerName}?`)) {
+                    try {
+                        const response = await fetch(`/api/watchlist/${currentServerForWatchlist}/${playerName}`, { method: 'DELETE' });
+                        if (response.ok) {
+                            playerLi.remove();
+                        } else {
+                            alert('Falha ao remover jogador.');
+                        }
+                    } catch (error) {
+                        alert('Falha ao remover jogador.');
+                    }
+                }
+            }
+        });
+    }
+
+    if (webhookInput) {
+        webhookInput.addEventListener('input', () => {
+            if (webhookErrorMsg.style.display === 'block') {
+                webhookErrorMsg.style.display = 'none';
+            }
+        });
+    }
+
+    if (watchlistPlayerInput) {
+        watchlistPlayerInput.addEventListener('input', () => {
+            if (watchlistErrorMsg.style.display === 'block') {
+                watchlistErrorMsg.style.display = 'none';
+            }
+        });
+    }
+
+    if (navButtons.settings) {
+        navButtons.settings.addEventListener('click', () => {
+            if(webhookErrorMsg) webhookErrorMsg.style.display = 'none';
+            if(watchlistErrorMsg) watchlistErrorMsg.style.display = 'none';
+            loadSettings();
+        });
+    }
+}
+
+async function initializeApp() {
+    try {
+        await appCache.init();
+        setupTheme();
+        setupNavigation();
+        setupDashboardControls();
+        setupAddForms();
+        setupCardActions();
+        setupSettingsPage(); // A chamada para a nova função está aqui
+        await fetchAndUpdateServers();
+        updateIntervalId = setInterval(fetchAndUpdateServers, UPDATE_INTERVAL);
+    } catch (error) {
+        console.error("Erro fatal na inicialização do script:", error);
+        if (serverListContainer) serverListContainer.innerHTML = '<p class="empty-message">Ocorreu um erro crítico. Verifique o console.</p>';
+    }
+}
+
+initializeApp();
+})
