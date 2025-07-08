@@ -762,10 +762,18 @@ function setupConsole(serverIp) {
             legendItem.appendChild(symbol);
             legendItem.appendChild(text);
             legendItem.onclick = () => {
-                historyChart.setDatasetVisibility(index, !historyChart.isDatasetVisible(index));
-                legendItem.classList.toggle('hidden');
-                historyChart.update();
-            };
+    // Pega o estado de visibilidade ATUAL
+    const isVisible = historyChart.isDatasetVisible(index);
+
+    // Inverte a visibilidade no gráfico
+    historyChart.setDatasetVisibility(index, !isVisible);
+
+    // Adiciona ou remove a NOSSA NOVA classe para o efeito visual
+    legendItem.classList.toggle('desativado', isVisible);
+    
+    // Atualiza o gráfico para mostrar a mudança
+    historyChart.update();
+};
             legendContainer.appendChild(legendItem);
         });
     }

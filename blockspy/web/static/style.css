@@ -799,23 +799,33 @@ input:checked+.slider:before {
     font-size: 0.9rem;
     color: var(--text-secondary);
     transition: all 0.2s ease-in-out;
+    padding: 4px 8px; /* Bônus: um preenchimento pra ficar mais bonito */
+    border-radius: 6px;
 }
 
-.legend-item:hover {
+/* EFEITO AO PASSAR O MOUSE */
+.legend-item:not(.desativado):hover {
     color: var(--text-primary);
+    background-color: var(--border-color);
 }
 
-.legend-item.hidden {
-    text-decoration: line-through;
-    opacity: 0.5;
-}
-
+/* A REGRA QUE FALTAVA - A BOLINHA EM SI */
 .legend-symbol {
     width: 12px;
     height: 12px;
     border-radius: 50%;
     margin-right: 8px;
-    border: 2px solid rgba(255, 255, 255, 0.9);
+    flex-shrink: 0; /* Impede que a bolinha seja esmagada */
+}
+
+/* QUANDO O ITEM ESTIVER DESATIVADO */
+.legend-item.desativado {
+    opacity: 0.4;
+    text-decoration: line-through;
+}
+
+.legend-item.desativado .legend-symbol {
+    filter: grayscale(80%);
 }
 
 #reset-zoom-btn {
