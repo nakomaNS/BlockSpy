@@ -805,19 +805,13 @@ async function initializeApp() {
     const canvas = document.getElementById('history-chart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
-    const legendContainer = document.getElementById('details-legend-container');
 
-    // 1. Destrói o gráfico antigo, se ele existir. Limpeza total.
-    if (historyChart) {
-        historyChart.destroy();
-        historyChart = null;
-    }
-
-    // Limpa a legenda antiga
-    if(legendContainer) legendContainer.innerHTML = '';
-
-    // 2. Lida com o caso de não haver dados para o período
+    // Se não houver dados, limpa o canvas e mostra a mensagem
     if (!data || data.length === 0) {
+        if (historyChart) {
+            historyChart.destroy();
+            historyChart = null;
+        }
         const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim();
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.font = "16px 'Inter', sans-serif";
@@ -827,12 +821,33 @@ async function initializeApp() {
         return;
     }
 
-    // 3. Prepara os dados e as cores (sempre)
+    // Prepara os novos dados
     const labels = data.map(d => new Date(d.timestamp));
     const pings = data.map(d => d.ping);
     const lotacao = data.map(d => d.lotacao_percentual);
     const variacao = data.map(d => d.variacao_jogadores);
     const jogadores = data.map(d => d.jogadores_online);
+    const textPositive = getComputedStyle(document.documentElement).getPropertyValue('--text-positive').trim();
+    const textNegative = getComputedStyle(document.documentElement).getPropertyValue('--text-negative').trim();
+
+
+    // --- A MÁGICA ACONTECE AQUI ---
+    // Se o gráfico JÁ EXISTE, apenas atualizamos os dados
+    if (historyChart) {
+        historyChart.data.labels = labels;
+        historyChart.data.datasets[0].data = variacao;
+        historyChart.data.datasets[0].backgroundColor = variacao.map(v => v > 0 ? textPositive : (v < 0 ? textNegative : 'transparent'));
+        historyChart.data.datasets[0].borderColor = variacao.map(v => v > 0 ? textPositive : (v < 0 ? textNegative : 'transparent'));
+        historyChart.data.datasets[1].data = lotacao;
+        historyChart.data.datasets[2].data = pings;
+        historyChart.data.datasets[3].data = jogadores;
+        historyChart.update('none'); // 'none' para uma atualização sem animação, mais suave
+        return; // Sai da função após atualizar
+    }
+
+    // Se o gráfico NÃO EXISTE (primeira vez), nós o criamos
+    const legendContainer = document.getElementById('details-legend-container');
+    if(legendContainer) legendContainer.innerHTML = ''; // Limpa a legenda só na criação
     
     const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
     const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim();
@@ -840,12 +855,8 @@ async function initializeApp() {
     const accentBlue = getComputedStyle(document.documentElement).getPropertyValue('--accent-blue').trim();
     const accentGreen = getComputedStyle(document.documentElement).getPropertyValue('--accent-green').trim();
     const accentOrange = getComputedStyle(document.documentElement).getPropertyValue('--accent-orange').trim();
-    const textPositive = getComputedStyle(document.documentElement).getPropertyValue('--text-positive').trim();
-    const textNegative = getComputedStyle(document.documentElement).getPropertyValue('--text-negative').trim();
 
-    // 4. Cria uma instância totalmente nova do gráfico
     historyChart = new Chart(ctx, {
-        // ... (toda a sua configuração de 'data' e 'options' continua aqui, exatamente como antes)
         data: {
             labels: labels,
             datasets: [
@@ -856,15 +867,16 @@ async function initializeApp() {
             ]
         },
         options: {
+            // Suas opções de gráfico continuam exatamente as mesmas aqui...
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 0 },
             interaction: { intersect: false, mode: 'index' },
             scales: {
-                x: { 
+                x: {
                     type: 'time',
-                    time: { unit: 'hour', tooltipFormat: 'dd/MM HH:mm', displayFormats: { hour: 'HH:mm', day: 'dd/MM'}},
-                    ticks: { color: textColor, maxRotation: 0, autoSkip: true }, 
+                    time: { unit: 'hour', tooltipFormat: 'dd/MM HH:mm', displayFormats: { hour: 'HH:mm', day: 'dd/MM' } },
+                    ticks: { color: textColor, maxRotation: 0, autoSkip: true },
                     grid: { drawOnChartArea: false, drawBorder: false },
                 },
                 yPing: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Ping (ms)', color: textColor }, grid: { drawOnChartArea: false }, min: 0, ticks: { color: textColor } },
@@ -873,70 +885,57 @@ async function initializeApp() {
                 yVariacao: { display: false }
             },
             plugins: {
-    legend: { display: false },
-
-    tooltip: { 
-        enabled: true,
-        events: ['click'],
-        backgroundColor: 'var(--bg-card)', 
-        titleColor: primaryColor, 
-        titleFont: { weight: 'bold', size: 14 }, 
-        bodyColor: textColor, 
-        borderColor: gridColor, 
-        borderWidth: 1, 
-        padding: 12, 
-        cornerRadius: 8, 
-        usePointStyle: true, 
-        boxPadding: 4, 
-        callbacks: { 
-            label: function(context) { 
-                let label = context.dataset.label || ''; 
-                if (label) { label += ': '; } 
-                if (context.parsed.y !== null) { 
-                    let value = context.parsed.y; 
-                    if (context.dataset.label === 'Lotação (%)') label += value.toFixed(2) + '%'; 
-                    else if (context.dataset.label === 'Ping (ms)') label += value + 'ms'; 
-                    else if (context.dataset.label.trim() === 'Entrada/Saída') label = (value > 0 ? '+' : '') + value + ' jogadores'; 
-                    else label += value; 
-                } 
-                return label; 
-            } 
-        } 
-    },
-
-    zoom: {
-        pan: { enabled: true, mode: 'x', modifierKey: 'ctrl' },
-        zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
-
-        onZoomComplete: function({chart}) {
-            // Mostra o botão de reset após o zoom
-            document.getElementById('contextual-reset-zoom-btn').classList.remove('hidden');
-        },
-
-        onPanComplete: function({chart}) {
-            // Também mostra o botão de reset após arrastar
-            document.getElementById('contextual-reset-zoom-btn').classList.remove('hidden');
+                legend: { display: false },
+                tooltip: {
+                    enabled: true,
+                    backgroundColor: 'var(--bg-card)',
+                    titleColor: primaryColor,
+                    titleFont: { weight: 'bold', size: 14 },
+                    bodyColor: textColor,
+                    borderColor: gridColor,
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 8,
+                    usePointStyle: true,
+                    boxPadding: 4,
+                    callbacks: {
+                        label: function (context) {
+                            let label = context.dataset.label || '';
+                            if (label) { label += ': '; }
+                            if (context.parsed.y !== null) {
+                                let value = context.parsed.y;
+                                if (context.dataset.label === 'Lotação (%)') label += value.toFixed(2) + '%';
+                                else if (context.dataset.label === 'Ping (ms)') label += value + 'ms';
+                                else if (context.dataset.label.trim() === 'Entrada/Saída') label = (value > 0 ? '+' : '') + value + ' jogadores';
+                                else label += value;
+                            }
+                            return label;
+                        }
+                    }
+                },
+                zoom: {
+                    pan: { enabled: true, mode: 'x', modifierKey: 'ctrl' },
+                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
+                    onZoomComplete: function ({ chart }) {
+                        document.getElementById('contextual-reset-zoom-btn').classList.remove('hidden');
+                    },
+                    onPanComplete: function ({ chart }) {
+                        document.getElementById('contextual-reset-zoom-btn').classList.remove('hidden');
+                    }
+                }
+            }
         }
-    }
-}}
     });
-    canvas.onmouseleave = () => {
-        if (historyChart && historyChart.tooltip) {
-            // Esconde o tooltip programaticamente
-            historyChart.tooltip.setActiveElements([], { x: 0, y: 0 });
-            historyChart.update();
-        }
-    };
-    // 5. Renderiza a legenda (agora sempre será executada após a criação)
+
+    // Renderiza a legenda customizada (apenas na criação do gráfico)
     if (legendContainer) {
         historyChart.data.datasets.forEach((dataset, index) => {
             const legendItem = document.createElement('div');
             legendItem.className = 'legend-item';
-            if (historyChart.isDatasetVisible(index) === false) { legendItem.classList.add('hidden'); }
             const symbol = document.createElement('span');
             symbol.className = 'legend-symbol';
             let symbolColor = dataset.borderColor;
-            if (dataset.type === 'bar') { symbolColor = textNegative; }
+            if (Array.isArray(symbolColor)) symbolColor = textNegative;
             symbol.style.backgroundColor = symbolColor;
             const text = document.createElement('span');
             text.className = 'legend-text';
@@ -944,18 +943,11 @@ async function initializeApp() {
             legendItem.appendChild(symbol);
             legendItem.appendChild(text);
             legendItem.onclick = () => {
-    // Pega o estado de visibilidade ATUAL
-    const isVisible = historyChart.isDatasetVisible(index);
-
-    // Inverte a visibilidade no gráfico
-    historyChart.setDatasetVisibility(index, !isVisible);
-
-    // Adiciona ou remove a NOSSA NOVA classe para o efeito visual
-    legendItem.classList.toggle('desativado', isVisible);
-    
-    // Atualiza o gráfico para mostrar a mudança
-    historyChart.update();
-};
+                const isVisible = historyChart.isDatasetVisible(index);
+                historyChart.setDatasetVisibility(index, !isVisible);
+                legendItem.classList.toggle('desativado', isVisible);
+                historyChart.update();
+            };
             legendContainer.appendChild(legendItem);
         });
     }
