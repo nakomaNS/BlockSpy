@@ -1,4 +1,4 @@
-# BlockSpy Beta v2.0
+# BlockSpy Beta v3.0
 ![Licença](https://img.shields.io/github/license/nakomaNS/blockspy?style=for-the-badge)
 
 BlockSpy é uma suíte de monitoramento completa que oferece dados em tempo real, históricos detalhados e ferramentas de gerenciamento diretamente no seu navegador. Com uma interface limpa e reativa, você tem controle total sobre seus servidores, seja um, ou uma centena.
@@ -37,7 +37,7 @@ Clique no link abaixo para baixar a versão mais recente. Depois, é só colocar
 
 ---
 
-## Executando a Partir do Código-Fonte
+## Executando em ambientes GNU/Linux (Ubuntu/Debian)
 
 **Linux (Ubuntu/Debian)**
 
@@ -50,8 +50,8 @@ Para usuários de Linux a execução é feita diretamente a partir do código-fo
 
 1.  Clone o repositório e entre na pasta do projeto:
     ```sh
-    git clone https://github.com/nakomaNS/blockspy
-    cd blockspy
+    git clone https://github.com/nakomaNS/BlockSpy
+    cd BlockSpy
     ```
 
 2.  Dê permissão e execute o script:
