@@ -7,7 +7,7 @@ import hashlib
 import asyncio
 import os
 
-# Regex do 'commands.py'
+# Regex do commands.py
 IP_DOMAIN_REGEX = re.compile(r"^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,6}(?::\d+)?$|^(?:[0-9]{1,3}\.){3}[0-9]{1,3}(?::\d+)?$")
 
 def limpar_formatacao_minecraft(texto: str) -> str:
@@ -57,26 +57,23 @@ async def determinar_tipo_servidor(status, tipo_atual_db: str, ip: str, logger: 
     """
     Determina se o servidor é Original ou Pirata, retornando o tipo para o DB.
     """
-    # Se já foi determinado, não checa de novo.
+
     if tipo_atual_db in ("Original", "Pirata"):
         return tipo_atual_db
 
     try:
-        # Se não há jogadores online, não há como saber.
+
         if status.players.online == 0:
             return "Indeterminado"
         
-        # Se há jogadores, mas a lista de amostra está vazia (oculta).
+
         if not status.players.sample:
             return "Lista Oculta"
 
-        # Pega o primeiro jogador da amostra para análise.
         player_sample = status.players.sample[0]
         
-        # Gera o UUID que um jogador teria em modo offline (pirata).
         uuid_offline = uuid.UUID(bytes=hashlib.md5(f"OfflinePlayer:{player_sample.name}".encode('utf-8')).digest(), version=3)
 
-        # Compara o UUID real do jogador com o UUID gerado para o modo offline.
         if player_sample.id == str(uuid_offline):
             return "Pirata"
         else:
@@ -91,11 +88,8 @@ def get_persistent_data_path(filename: str) -> str:
     Cria e retorna o caminho para um arquivo de dados persistente
     na pasta do usuário. Garante que a pasta exista.
     """
-    # Cria uma pasta para o seu app no diretório "home" do usuário
     app_data_dir = os.path.join(os.path.expanduser('~'), 'BlockSpy')
     
-    # Garante que essa pasta exista. Se não existir, cria ela.
     os.makedirs(app_data_dir, exist_ok=True)
     
-    # Retorna o caminho completo para o arquivo (ex: C:/Users/SeuUsuario/BlockSpy/database.db)
     return os.path.join(app_data_dir, filename)

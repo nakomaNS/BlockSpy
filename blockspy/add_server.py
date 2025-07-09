@@ -1,8 +1,6 @@
 import sqlite3
 import sys
 
-# Pega o IP do servidor do argumento da linha de comando
-# Ex: python add_server.py mc.hypixel.net
 if len(sys.argv) < 2:
     print("Erro: Forneça o IP do servidor como argumento.")
     print("Exemplo: python add_server.py mc.hypixel.net")
@@ -15,7 +13,7 @@ try:
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
 
-    # Usa a coluna 'pausado' e o status 'pending'
+    # Usa a coluna pausado e o status pending
     # INSERT OR IGNORE não falha se o IP já existir (por causa do UNIQUE)
     cursor.execute(
         "INSERT OR IGNORE INTO servidores (ip_servidor, nome_servidor, pausado, status) VALUES (?, ?, ?, ?)", 

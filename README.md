@@ -56,7 +56,7 @@ Para usuários de Linux a execução é feita diretamente a partir do código-fo
 
 2.  Dê permissão e execute o script:
     ```sh
-    chmod +x start.sh
+    sudo chmod +x start.sh
     ./start.sh
     ```
     

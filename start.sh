@@ -7,11 +7,9 @@ set_red() { tput setaf 1; }
 set_bold() { tput bold; }
 reset_color() { tput sgr0; }
 
-# --- PONTO DE ENTRADA DO SCRIPT ---
 echo "[BlockSpy] Iniciando lançador..."
 
-# --- MUDANÇA 1: Mensagens de erro mais genéricas ---
-# Removemos a tentativa de instalar com 'apt' e damos uma instrução universal.
+# --- MUDANÇA 1: Mensagens de erro
 if ! command -v python3 &> /dev/null; then
     set_red; echo "[ERRO] O comando 'python3' não foi encontrado no seu sistema."; reset_color;
     echo "O BlockSpy precisa de Python 3.8+ para funcionar."
@@ -20,7 +18,7 @@ if ! command -v python3 &> /dev/null; then
     exit 1
 fi
 
-# --- VERIFICAÇÃO #2: O VENV EXISTE? ---
+# --- VERIFICAÇÃO #2
 if [ ! -d "venv" ]; then
     echo "[INFO] Ambiente virtual não encontrado. Criando agora..."
     python3 -m venv venv
@@ -32,7 +30,7 @@ if [ ! -d "venv" ]; then
     fi
 fi
 
-# --- VERIFICAÇÃO DE DEPENDÊNCIAS (Mantida, está perfeita) ---
+# --- VERIFICAÇÃO #3
 check_dependencies() {
     REQUIREMENTS_FILE="requirements.txt"
     HASH_FILE=".deps_hash"
@@ -54,7 +52,7 @@ check_dependencies() {
     fi
 }
 
-# --- MENU (Mantido) ---
+# --- MENU ---
 show_menu() {
     clear; set_blue; set_bold
     cat << "EOF"
@@ -74,8 +72,7 @@ EOF
     case "$choice" in 1) start_application ;; 2) echo "Operação cancelada."; exit 0 ;; *) show_menu ;; esac
 }
 
-# --- MUDANÇA 2: Centralizando a lógica no launcher.py ---
-# Agora, esta função apenas chama o script Python que já sabe o que fazer.
+# --- Centralizando a lógica no launcher.py ---
 start_application() {
     echo ""
     echo "[INFO] Entregando o controle para o launcher.py..."
@@ -85,10 +82,8 @@ start_application() {
     echo "   Pressione CTRL+C aqui no terminal para forçar o encerramento."
     echo "--------------------------------------------------------"
     
-    # Este é o novo comando. Simples e limpo.
     ./venv/bin/python3 launcher.py
 }
 
-# --- Execução Principal ---
 check_dependencies
 show_menu

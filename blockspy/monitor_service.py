@@ -14,7 +14,7 @@ from async_mcrcon import MinecraftClient
 from datetime import datetime, timezone
 from datetime import datetime, timedelta
 
-# --- EXCEÇÕES CUSTOMIZADAS PARA CLAREZA ---
+
 class RconAuthenticationError(Exception):
     """Exceção para falha de autenticação RCON."""
     pass
@@ -25,7 +25,7 @@ class RconConnectionError(Exception):
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
-# Constantes para controle do monitoramento
+
 INTERVALO_SEGUNDOS_ONLINE = 20
 DELAY_BETWEEN_BATCHES = 5
 BATCH_SIZE = 5
@@ -121,7 +121,6 @@ class MonitorService:
                 else:
                     response_text = str(response_raw)
 
-                # Remove formatação de cores do Minecraft
                 import re
                 response_text = re.sub(r'§.', '', response_text)
 
@@ -143,7 +142,6 @@ class MonitorService:
     async def _criar_tabelas(self):
         self.logger.info("Verificando e criando a estrutura final do banco de dados...")
 
-        # PASSO 1: Cria a tabela MAIS IMPORTANTE primeiro.
         await self.db_connection.execute("""
             CREATE TABLE IF NOT EXISTS servidores (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -172,11 +170,8 @@ class MonitorService:
             );
         """)
         
-        # PASSO 2: SALVA (commit) imediatamente para garantir que ela exista NO DISCO.
-        # ESTA É A LINHA MAIS IMPORTANTE DA CORREÇÃO!
         await self.db_connection.commit()
 
-        # PASSO 3: Agora, cria o resto das tabelas que dependem da primeira.
         await self.db_connection.execute("""
             CREATE TABLE IF NOT EXISTS log_status (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -219,7 +214,6 @@ class MonitorService:
             );
         """)
         
-        # PASSO 4: Salva o resto no final.
         await self.db_connection.commit()
 
     async def _atualizar_schema(self):
@@ -252,7 +246,6 @@ class MonitorService:
         except Exception as e:
             self.logger.error(f"Ocorreu um erro grave ao atualizar o schema do banco de dados: {e}")
 
-    # --- FUNÇÕES NOVAS PARA A API DE CONFIGURAÇÕES ---
 
     async def get_first_server_settings(self) -> dict:
         """Busca as configurações do primeiro servidor para usar como base global."""
@@ -320,16 +313,13 @@ class MonitorService:
         await self.db_connection.commit()
         return delete_cursor.rowcount > 0
 
-            # CALENDARIO DO HEATMAP #
     async def get_calendar_heatmap_data(self, ip_servidor: str, year: int, month: int) -> list:
         self.logger.info(f"Gerando dados de calendário para {ip_servidor} (Mês: {month}/{year})")
         cursor = await self.db_connection.execute("SELECT id FROM servidores WHERE ip_servidor = ?", (ip_servidor,))
         server_info = await cursor.fetchone()
         if not server_info: return []
 
-        # Constrói o período de tempo para o mês solicitado
         start_date = f"{year}-{month:02d}-01"
-        # Calcula o próximo mês para pegar o último dia do mês corrente
         next_month_date = (datetime(year, month, 1) + timedelta(days=32)).replace(day=1)
         end_date = next_month_date.strftime('%Y-%m-%d')
 
@@ -351,7 +341,6 @@ class MonitorService:
         server_id = servidor_row['id']
         timestamp = datetime.now(timezone.utc).isoformat()
         
-        # Pegamos os dados antigos para comparação
         status_anterior = servidor_row['status']
         versao_anterior = servidor_row['versao']
 
@@ -359,7 +348,6 @@ class MonitorService:
             server = await JavaServer.async_lookup(ip, timeout=10)
             status = await server.async_status()
             
-            # Se mudou de offline para online, registramos o evento
             if status_anterior != 'online':
                 await self.db_connection.execute(
                     "INSERT INTO eventos (servidor_id, timestamp, tipo_evento, detalhes) VALUES (?, ?, ?, ?)",
@@ -374,7 +362,7 @@ class MonitorService:
                     (server_id, timestamp, 'VERSAO_ALTERADA', f"Versão alterada de '{versao_anterior}' para '{status.version.name}'.")
                 )
             
-            # 2. Evento de Novo Pico de Jogadores (requer buscar o pico atual)
+            # 2. Evento de Novo Pico de Jogadores
             stats_cursor = await self.db_connection.execute(
                 "SELECT MAX(jogadores_online) as peak_24h FROM log_status WHERE servidor_id = ? AND timestamp >= datetime('now', '-24 hours')",
                 (server_id,)
@@ -387,7 +375,6 @@ class MonitorService:
                     "INSERT INTO eventos (servidor_id, timestamp, tipo_evento, detalhes) VALUES (?, ?, ?, ?)",
                     (server_id, timestamp, 'NOVO_PICO_JOGADORES', f"🏆 Novo recorde de jogadores em 24h: {status.players.online} jogadores.")
                 )
-            # --- FIM DA NOVA LÓGICA ---
 
 
             await self._update_player_history(server_id, status.players.sample)
@@ -592,7 +579,7 @@ class MonitorService:
                 db_update_dict[db_column_name] = value
             self.logger.info(f"[ETAPA 3] Dicionário traduzido para nomes do DB: {db_update_dict}")
 
-            # Remove campos com valores "vazios" para não sujar o banco
+            # Remove campos com valores vazios para não sujar a db
             db_update_dict_final = {k: v for k, v in db_update_dict.items() if v is not None and v != ''}
             self.logger.info(f"[ETAPA 4] Dicionário final após limpar vazios/nulos: {db_update_dict_final}")
 
@@ -600,7 +587,7 @@ class MonitorService:
                 self.logger.warning("[ETAPA 5] Nenhuma alteração detectada. Encerrando.")
                 return {"message": "Nenhuma alteração para salvar."}
 
-            # Constrói a query final e os parâmetros
+            # query final e os parâmetros
             fields_to_update = [f"{key} = ?" for key in db_update_dict_final.keys()]
             params = list(db_update_dict_final.values())
             query = f"UPDATE servidores SET {', '.join(fields_to_update)} WHERE id = ?"

@@ -1,4 +1,3 @@
-# Dependências principais do BlockSpy
 fastapi
 uvicorn[standard]
 jinja2

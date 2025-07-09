@@ -181,7 +181,7 @@ async def get_server_history_endpoint(server_ip: str, hours: int = 24):
     Busca o histórico de um servidor.
     Aceita um parâmetro de query 'hours' para definir o período.
     """
-    # Passamos o parâmetro 'hours' para a função do serviço
+    # Parâmetro 'hours' passa para a função do serviço
     history_data = await service.get_server_history(server_ip.strip(), hours=hours)
     return JSONResponse(content=history_data)
 
@@ -274,8 +274,6 @@ async def shutdown_server():
     Endpoint para desligar a aplicação de forma segura.
     """
     print("Comando de desligamento recebido. Encerrando o processo...")
-    # os._exit(0) é a forma mais abrupta e garantida de fechar
-    # um processo, o que é ideal para um .exe.
     os._exit(0)
     return {"message": "Servidor está desligando."}
 
