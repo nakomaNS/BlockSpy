@@ -66,12 +66,6 @@ async function setLanguage(lang) {
     }
 
 
-    if (navButtons.settings) {
-        navButtons.settings.addEventListener('click', () => {
-            // ... (o código que já estava aqui)
-            loadSettings();
-        });
-    }
 }
     Chart.register(ChartZoom);
 
