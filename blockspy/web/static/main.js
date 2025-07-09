@@ -1060,11 +1060,11 @@ async function initializeApp() {
 
         // Usamos a MESMA estrutura que fizemos para a lista de offline
         li.innerHTML = `
-            <div class="player-info-left">
-                <img src="${headUrl}" class="player-head" alt="${playerName}">
-                <span class="player-name">${playerName}</span>
-            </div>
-        `;
+    <div class="player-info-left">
+        <img src="${headUrl}" class="player-head" alt="${playerName}" onerror="this.onerror=null; this.src='/static/player-head-cracked.jpg';">
+        <span class="player-name">${playerName}</span>
+    </div>
+`;
         onlineListEl.appendChild(li);
     });
 }
@@ -1085,12 +1085,12 @@ async function initializeApp() {
 
     // O resto continua igual
     li.innerHTML = `
-        <div class="player-info-left">
-            <img src="${headUrl}" class="player-head" alt="${playerName}">
-            <span class="player-name">${playerName}</span>
-        </div>
-        <span class="player-offline-time">${lastSeenFormatted}</span>
-    `;
+    <div class="player-info-left">
+        <img src="${headUrl}" class="player-head" alt="${playerName}" onerror="this.onerror=null; this.src='/static/player-head-cracked.jpg';">
+        <span class="player-name">${playerName}</span>
+    </div>
+    <span class="player-offline-time">${lastSeenFormatted}</span>
+`;
 
     offlineListEl.appendChild(li);
 });
@@ -1900,20 +1900,32 @@ function setupSettingsPage() {
     }
 
     function renderWatchlist(players) {
-        watchlistPlayerList.innerHTML = '';
-        players.forEach(player => {
-            const li = document.createElement('li');
-            li.dataset.playerName = player.nome_jogador;
-            li.innerHTML = `
-    <div class="player-info-left">
-        <img src="${headUrl}" class="player-head" alt="${playerName}">
-        <span class="player-name">${playerName}</span>
-    </div>
-    <span class="player-offline-time">${lastSeenFormatted}</span>
-`;
-            watchlistPlayerList.appendChild(li);
-        });
-    }
+    watchlistPlayerList.innerHTML = '';
+    players.forEach(player => {
+        const li = document.createElement('li');
+        
+        // --- INÍCIO DA CORREÇÃO ---
+        // 1. Definimos o nome do jogador para ser usado depois
+        const playerName = player.nome_jogador;
+        li.dataset.playerName = playerName;
+
+        // 2. Definimos a URL da cabeça do jogador
+        const headUrl = `https://minotar.net/avatar/${playerName}/28`;
+
+        // 3. Montamos o HTML correto, agora com as variáveis definidas
+        //    e o botão de remover de volta no lugar.
+        li.innerHTML = `
+            <div class="player-info-left">
+                <img src="${headUrl}" class="player-head" alt="${playerName}" onerror="this.onerror=null; this.src='/static/player-head-cracked.jpg';">
+                <span class="player-name">${playerName}</span>
+            </div>
+            <button class="remove-watchlist-btn" title="Remover Jogador">&times;</button>
+        `;
+        // --- FIM DA CORREÇÃO ---
+
+        watchlistPlayerList.appendChild(li);
+    });
+}
 
     // --- 3. CONFIGURAÇÃO DOS EVENTOS ---
     if (saveButton) {
