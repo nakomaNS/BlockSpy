@@ -142,9 +142,41 @@ class MonitorService:
         
     async def _criar_tabelas(self):
         self.logger.info("Verificando e criando a estrutura final do banco de dados...")
+
+        # PASSO 1: Cria a tabela MAIS IMPORTANTE primeiro.
+        await self.db_connection.execute("""
+            CREATE TABLE IF NOT EXISTS servidores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ip_servidor TEXT NOT NULL UNIQUE,
+                nome_servidor TEXT,
+                nome_customizado TEXT,
+                versao TEXT,
+                jogadores_online INTEGER,
+                jogadores_maximos INTEGER,
+                ping REAL,
+                status TEXT DEFAULT 'pending',
+                pausado INTEGER DEFAULT 0,
+                tem_icone_customizado INTEGER DEFAULT 0,
+                localizacao TEXT,
+                tipo_servidor TEXT,
+                caminho_servidor TEXT,
+                rcon_port INTEGER,
+                rcon_password TEXT,
+                ultima_verificacao TEXT,
+                discord_webhook_url TEXT,
+                notificar_online_offline INTEGER DEFAULT 0,
+                notificar_pico_jogadores INTEGER DEFAULT 0,
+                notificar_marcos_lotacao INTEGER DEFAULT 0,
+                notificar_primeira_entrada INTEGER DEFAULT 0,
+                ultimo_marco_notificado INTEGER DEFAULT 0
+            );
+        """)
         
-        # ... (código que cria a tabela 'servidores') ...
-        
+        # PASSO 2: SALVA (commit) imediatamente para garantir que ela exista NO DISCO.
+        # ESTA É A LINHA MAIS IMPORTANTE DA CORREÇÃO!
+        await self.db_connection.commit()
+
+        # PASSO 3: Agora, cria o resto das tabelas que dependem da primeira.
         await self.db_connection.execute("""
             CREATE TABLE IF NOT EXISTS log_status (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -186,7 +218,8 @@ class MonitorService:
                 UNIQUE(servidor_id, nome_jogador)
             );
         """)
-        # Dica: movi o commit() para o final, só precisamos de um.
+        
+        # PASSO 4: Salva o resto no final.
         await self.db_connection.commit()
 
     async def _atualizar_schema(self):
