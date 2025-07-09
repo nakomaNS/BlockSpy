@@ -1,4 +1,4 @@
-# BlockSpy
+# BlockSpy - Suíte de Monitoramento 
 ![Licença](https://img.shields.io/github/license/nakomaNS/blockspy?style=for-the-badge)
 
 BlockSpy é uma suíte de monitoramento completa que oferece dados em tempo real, históricos detalhados e ferramentas de gerenciamento diretamente no seu navegador. Com uma interface limpa e reativa, você tem controle total sobre seus servidores, seja um, ou uma centena.
@@ -31,7 +31,7 @@ Para usar o BlockSpy no Windows, basta baixar o executável. Não é necessário
 
 Clique no link abaixo para baixar a versão mais recente. Depois, é só colocar o arquivo em qualquer pasta e dar um duplo clique para executar!
 
-[**Baixar BlockSpy para Windows (.exe)**](https://github.com/nakomaNS/BlockSpy/releases/download/3.0/BlockSpy.exe)
+[**Baixar BlockSpy para Windows (.exe)**](https://github.com/nakomaNS/BlockSpy/releases/download/Release/BlockSpy.exe)
 
 *Observação: Por ser um software de um desenvolvedor independente, o Windows pode exibir um aviso de segurança (SmartScreen). Se isso acontecer, clique em "Mais informações" e depois em "Executar assim mesmo".*
 
