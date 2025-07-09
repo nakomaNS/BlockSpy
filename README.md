@@ -1,4 +1,4 @@
-# BlockSpy Beta v3.0
+# BlockSpy
 ![Licença](https://img.shields.io/github/license/nakomaNS/blockspy?style=for-the-badge)
 
 BlockSpy é uma suíte de monitoramento completa que oferece dados em tempo real, históricos detalhados e ferramentas de gerenciamento diretamente no seu navegador. Com uma interface limpa e reativa, você tem controle total sobre seus servidores, seja um, ou uma centena.
