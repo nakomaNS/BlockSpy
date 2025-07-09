@@ -313,3 +313,4 @@ async def remove_from_watchlist(server_ip: str, player_name: str):
     if not success:
         raise HTTPException(status_code=404, detail="Jogador não encontrado na watchlist.")
     return {"message": "Jogador removido da watchlist."}
+# Last update 07/08/2025 21:17:37

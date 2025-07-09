@@ -61,3 +61,5 @@ Para usuários de Linux a execução é feita diretamente a partir do código-fo
     ```
     
 4.  Para parar a aplicação, pressione `CTRL+C` no terminal.
+
+# Last update 07/08/2025 21:17:37
