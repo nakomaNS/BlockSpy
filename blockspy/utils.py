@@ -99,4 +99,3 @@ def get_persistent_data_path(filename: str) -> str:
     
     # Retorna o caminho completo para o arquivo (ex: C:/Users/SeuUsuario/BlockSpy/database.db)
     return os.path.join(app_data_dir, filename)
-# Last update 07/08/2025 21:17:37

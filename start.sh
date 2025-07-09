@@ -144,4 +144,4 @@ start_application() {
 check_dependencies
 show_menu
 
-# Last update 07/08/2025 21:17:37
+

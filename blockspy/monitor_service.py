@@ -738,4 +738,3 @@ class MonitorService:
             for row in rows
         ]
         return heatmap_data
-# Last update 07/08/2025 21:17:37

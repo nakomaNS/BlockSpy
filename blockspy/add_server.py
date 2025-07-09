@@ -32,4 +32,3 @@ try:
 
 except Exception as e:
     print(f"❌ Ocorreu um erro: {e}")
-# Last update 07/08/2025 21:17:37
