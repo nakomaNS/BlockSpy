@@ -26,126 +26,154 @@
                 <span>BlockSpy</span>
             </div>
             <nav>
-                <a href="#" id="nav-dashboard" class="nav-button active">
-                    <span class="icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-                    </span>
-                    Painel
-                </a>
-                <a href="#" id="nav-add-server" class="nav-button">
-                    <span class="icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
-                    </span>
-                    Adicionar Servidor
-                </a>
-                <a href="#" id="nav-settings" class="nav-button">
-                    <span class="icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                    </span>
-                    Configurações
-                </a>
-            </nav>
-            <a href="#" id="shutdown-button" class="nav-button">
-                <span class="icon">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
-                        <line x1="12" y1="2" x2="12" y2="12"></line>
-                    </svg>
-                </span>
-                Desligar
-            </a>
+    <a href="#" id="nav-dashboard" class="nav-button active" data-i18n-key="nav_dashboard">
+        <span class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </span>
+        Dashboard
+    </a>
+    <a href="#" id="nav-add-server" class="nav-button" data-i18n-key="nav_add_server">
+        <span class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="12" y1="8" x2="12" y2="16"></line><line x1="8" y1="12" x2="16" y2="12"></line></svg>
+        </span>
+        Add Server
+    </a>
+    <a href="#" id="nav-settings" class="nav-button" data-i18n-key="nav_settings">
+        <span class="icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        </span>
+        Settings
+    </a>
+</nav>
+<a href="#" id="shutdown-button" class="nav-button" data-i18n-key="nav_shutdown">
+    <span class="icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18.36 6.64a9 9 0 1 1-12.73 0"></path>
+            <line x1="12" y1="2" x2="12" y2="12"></line>
+        </svg>
+    </span>
+    Desligar
+</a>
         </aside>
 
         <main class="content-pane">
             <div id="dashboard-view">
-                <h1>Painel Principal</h1>
-                <div class="dashboard-controls">
-                    <div class="search-bar">
-                        <input type="text" id="search-input" placeholder="Pesquisar por nome ou IP...">
-                    </div>
-                    <button id="toggle-filters-btn" class="control-btn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
-                        Filtros
-                    </button>
-                </div>
-                <div id="filters-container" class="filters-container hidden">
-                    <div class="filter-group">
-                        <label for="filter-type">Tipo de Servidor:</label>
-                        <select id="filter-type"><option value="">Todos</option></select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="filter-flavor">Tipo de Software:</label>
-                        <select id="filter-flavor"><option value="">Todos</option></select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="filter-base-version">Versão Base:</label>
-                        <select id="filter-base-version"><option value="">Todas</option></select>
-                    </div>
-                    <div class="filter-group">
-                        <label for="sort-by">Ordenar por:</label>
-                        <select id="sort-by">
-                            <option value="nome_servidor-asc">Nome (A-Z)</option>
-                            <option value="jogadores_online-desc">Jogadores (Maior)</option>
-                            <option value="ping-asc">Ping (Menor)</option>
-                        </select>
-                    </div>
-                </div>
-                <div id="server-list" class="server-grid"></div>
-            </div>
-
-            <div id="add-server-view" style="display: none;">
-                <h1>Add New Server</h1>
-                <div class="add-server-options">
-                    <div class="add-option-card">
-                        <h2>Adicionar um Servidor</h2>
-                        <form id="single-add-form">
-                            <div class="form-group">
-                                <label for="single-ip-input">Endereço do Servidor (IP ou domínio)</label>
-                                <input type="text" id="single-ip-input" required placeholder="ex: hypixel.net">
-                            </div>
-                            <div class="form-group">
-                                <button type="submit">Adicionar</button>
-                            </div>
-                        </form>
-                        <div id="single-add-log"></div>
-                    </div>
-                    <div class="add-option-card">
-                        <h2>Adicionar em Massa</h2>
-                        <form id="bulk-add-form">
-                            <div class="form-group">
-                                <label for="bulk-ips-input">Lista de Endereços (um por linha)</label>
-                                <textarea id="bulk-ips-input" rows="5" placeholder="hypixel.net&#10;redesky.com"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <button type="submit">Adicionar Lista</button>
-                            </div>
-                        </form>
-                        <div id="bulk-log"></div>
-                    </div>
-                    <div class="add-option-card">
-                        <h2>Importar de Arquivo (.txt)</h2>
-                        <div class="file-upload-area">
-                            <label for="file-import-input">Clique ou arraste um arquivo .txt aqui</label>
-                            <input type="file" id="file-import-input" accept=".txt">
-                        </div>
-                        <div id="file-log"></div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="settings-view" style="display: none;">
-    <h1>Configurações</h1>
-    <div class="settings-section">
-        <h2>Aparência</h2>
-        <div class="theme-switch-wrapper">
-            <span>Modo Escuro</span>
-            <label class="theme-switch">
-                <input type="checkbox" id="theme-toggle">
-                <span class="slider"></span>
-            </label>
-            <span>Modo Claro</span>
+    <h1 data-i18n-key="dashboard_main_title">Painel Principal</h1>
+    <div class="dashboard-controls">
+        <div class="search-bar">
+            <input type="text" id="search-input" 
+       data-i18n-key="search_placeholder" 
+       data-i18n-target="placeholder" 
+       placeholder="Pesquisar por nome ou IP...">
+        </div>
+        <button id="toggle-filters-btn" class="control-btn" data-i18n-key="filters_button">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"></line><line x1="4" y1="10" x2="4" y2="3"></line><line x1="12" y1="21" x2="12" y2="12"></line><line x1="12" y1="8" x2="12" y2="3"></line><line x1="20" y1="21" x2="20" y2="16"></line><line x1="20" y1="12" x2="20" y2="3"></line><line x1="1" y1="14" x2="7" y2="14"></line><line x1="9" y1="8" x2="15" y2="8"></line><line x1="17" y1="16" x2="23" y2="16"></line></svg>
+            Filtros
+        </button>
+    </div>
+    <div id="filters-container" class="filters-container hidden">
+        <div class="filter-group">
+            <label for="filter-type" data-i18n-key="filter_label_server_type">Tipo de Servidor:</label>
+            <select id="filter-type"></select>
+        </div>
+        <div class="filter-group">
+            <label for="filter-flavor" data-i18n-key="filter_label_software_type">Tipo de Software:</label>
+            <select id="filter-flavor"></select>
+        </div>
+        <div class="filter-group">
+            <label for="filter-base-version" data-i18n-key="filter_label_base_version">Versão Base:</label>
+            <select id="filter-base-version"></select>
+        </div>
+        <div class="filter-group">
+            <label for="sort-by" data-i18n-key="filter_label_sort_by">Ordenar por:</label>
+            <select id="sort-by">
+                <option value="nome_servidor-asc" data-i18n-key="sort_option_name">Nome (A-Z)</option>
+                <option value="jogadores_online-desc" data-i18n-key="sort_option_players">Jogadores (Maior)</option>
+                <option value="ping-asc" data-i18n-key="sort_option_ping">Ping (Menor)</option>
+            </select>
         </div>
     </div>
+    <div id="server-list" class="server-grid"></div>
+</div>
+
+            <div id="add-server-view" style="display: none;">
+    <h1 data-i18n-key="add_server_page_title">Add New Server</h1>
+    <div class="add-server-options">
+        
+        <div class="add-option-card">
+            <h2 data-i18n-key="add_single_title">Adicionar um Servidor</h2>
+            <form id="single-add-form">
+                <div class="form-group">
+                    <label for="single-ip-input" data-i18n-key="add_single_label">Endereço do Servidor (IP ou domínio)</label>
+                    <input type="text" id="single-ip-input" required 
+                           data-i18n-key="add_single_placeholder" 
+                           data-i18n-target="placeholder" 
+                           placeholder="ex: hypixel.net">
+                </div>
+                <div class="form-group">
+                    <button type="submit" data-i18n-key="add_single_button">Adicionar</button>
+                </div>
+            </form>
+            <div id="single-add-log"></div>
+        </div>
+        
+        <div class="add-option-card">
+            <h2 data-i18n-key="add_bulk_title">Adicionar em Massa</h2>
+            <form id="bulk-add-form">
+                <div class="form-group">
+                    <label for="bulk-ips-input" data-i18n-key="add_bulk_label">Lista de Endereços (um por linha)</label>
+                    <textarea id="bulk-ips-input" rows="5" 
+                              data-i18n-key="add_bulk_placeholder" 
+                              data-i18n-target="placeholder" 
+                              placeholder="hypixel.net&#10;redesky.com"></textarea>
+                </div>
+                <div class="form-group">
+                    <button type="submit" data-i18n-key="add_bulk_button">Adicionar Lista</button>
+                </div>
+            </form>
+            <div id="bulk-log"></div>
+        </div>
+        
+        <div class="add-option-card">
+            <h2 data-i18n-key="add_file_title">Importar de Arquivo (.txt)</h2>
+            <div class="file-upload-area">
+                <label for="file-import-input" data-i18n-key="add_file_label">Clique ou arraste um arquivo .txt aqui</label>
+                <input type="file" id="file-import-input" accept=".txt">
+            </div>
+            <div id="file-log"></div>
+        </div>
+
+    </div>
+</div>
+
+            <div id="settings-view" style="display: none;">
+    <h1 data-i18n-key="settings_page_title">Configurações</h1>
+    <div class="settings-section">
+    <h2 class="section-title-with-icon">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+    </svg>
+    <span data-i18n-key="settings_appearance_title">Aparência</span>
+</h2>
+    <div class="theme-selector segmented-control">
+    <button id="theme-btn-dark" data-i18n-key="settings_dark_mode">Modo Escuro</button>
+    <button id="theme-btn-light" data-i18n-key="settings_light_mode">Modo Claro</button>
+</div>
+</div>
+    <div class="settings-section">
+    <h2 class="section-title-with-icon">
+    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="10"></circle>
+        <line x1="2" y1="12" x2="22" y2="12"></line>
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+    </svg>
+    <span data-i18n-key="settings_language_title">Idioma | Language</span>
+</h2>
+    <div class="lang-selector segmented-control">
+    <button id="lang-pt-btn" data-i18n-key="settings_lang_btn_pt">Português</button>
+    <button id="lang-en-btn" data-i18n-key="settings_lang_btn_en">English</button>
+</div>
+</div>
 </div>
 
             <div id="details-view" style="display: none;">
@@ -165,17 +193,17 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
                             </button>
                             <div id="export-dropdown-menu" class="dropdown-menu hidden">
-                                <a href="#" id="save-chart-image-btn">🖼️ Salvar como Imagem</a>
-                                <a href="#" id="export-chart-csv-btn">📄 Exportar Dados (.csv)</a>
+                                <a href="#" id="save-chart-image-btn" data-i18n-key="export_menu_save_image">🖼️ Salvar como Imagem</a>
+                                <a href="#" id="export-chart-csv-btn" data-i18n-key="export_menu_export_csv">📄 Exportar Dados (.csv)</a>
                             </div>
                         </div>
-                        <button id="back-to-dashboard" class="back-button">&larr; Voltar ao Painel</button>
+                        <button id="back-to-dashboard" class="back-button" data-i18n-key="details_back_button">&larr; Voltar ao Painel</button>
                     </div>
                 </div>
                 <div class="details-grid">
                     <div class="details-chart-container">
                         <div class="chart-header">
-                            <h2>Análise de Atividade</h2>
+                            <h2 data-i18n-key="details_chart_title">Análise de Atividade</h2>
                             <div class="chart-period-selector">
                                 <button class="period-btn" data-hours="1">1h</button>
                                 <button class="period-btn" data-hours="6">6h</button>
@@ -197,8 +225,8 @@
                             <h2>🔴 Console ao Vivo</h2>
                             <div class="console-overlay" id="console-overlay">
                                 <div class="overlay-content">
-                                    <p>A configuração RCON é necessária para usar esta funcionalidade.</p>
-                                    <button id="console-configure-btn" class="back-button">Configurar Agora</button>
+                                    <p data-i18n-key="console_overlay_message">A configuração RCON é necessária...</p>
+                                    <button id="console-configure-btn" class="back-button" data-i18n-key="console_overlay_button">Configurar Agora</button>
                                 </div>
                             </div>
                             <div class="console-output" id="console-log-display"></div>
@@ -218,28 +246,28 @@
                             <ul id="details-player-list"><li>Carregando...</li></ul>
                         </div>
                         <div class="details-players-container">
-                            <h2>Vistos por Último</h2>
+                            <h2 id="details-last-seen-title">Vistos por Último</h2>
                             <ul id="details-offline-player-list"><li>Carregando...</li></ul>
                         </div>
                         <div class="details-players-container" id="details-stats-card">
-                            <h2>Estatísticas (24h)</h2>
+                            <h2 data-i18n-key="stats_title">Estatísticas (24h)</h2>
                             <div class="stats-grid">
                                 <div class="stat-item">
-                                    <span class="stat-label">
+                                    <span class="stat-label" data-i18n-key="stats_uptime">
                                         <div class="icon-wrapper"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div>
                                         Uptime
                                     </span>
                                     <span class="stat-value" id="stat-uptime">--</span>
                                 </div>
                                 <div class="stat-item">
-                                    <span class="stat-label">
+                                    <span class="stat-label" data-i18n-key="stats_peak">
                                         <div class="icon-wrapper"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg></div>
                                         Pico de Jogadores
                                     </span>
                                     <span class="stat-value" id="stat-peak">--</span>
                                 </div>
                                 <div class="stat-item">
-                                    <span class="stat-label">
+                                    <span class="stat-label" data-i18n-key="stats_avg">
                                         <div class="icon-wrapper"><svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg></div>
                                         Média de Jogadores
                                     </span>
@@ -271,8 +299,8 @@
             <div class="modal-header"><h2 id="modal-title"></h2></div>
             <div class="modal-body"><p id="modal-message"></p></div>
             <div class="modal-footer">
-                <button id="modal-btn-cancel" class="cancel-btn">Cancelar</button>
-                <button id="modal-btn-confirm" class="confirm-btn">Confirmar</button>
+                <button id="modal-btn-cancel" class="cancel-btn" data-i18n-key="modal_btn_cancel">Cancelar</button>
+                <button id="modal-btn-confirm" class="confirm-btn" data-i18n-key="modal_btn_confirm">Confirmar</button>
             </div>
         </div>
     </div>
@@ -280,45 +308,45 @@
     <div id="edit-server-modal" class="modal-template">
         <div class="modal-content">
             <form id="edit-server-form">
-                <div class="modal-header">
-                    <h2>Editar Servidor</h2>
-                </div>
-                <div class="modal-body">
-                    <div class="form-group">
-                        <label for="edit-name-input">Nome Customizado</label>
-                        <input type="text" id="edit-name-input" placeholder="Deixe em branco para usar o nome padrão">
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-ip-input">Endereço do Servidor</label>
-                        <input type="text" id="edit-ip-input" required>
-                        <small>Aviso: Alterar o endereço apagará o histórico deste servidor.</small>
-                    </div>
-                    <div class="rcon-settings-group">
-                        <div class="rcon-settings-header">
-                            <h4>Configurações RCON (Opcional)</h4>
-                            <button type="button" class="card-action-btn" id="unlock-rcon-btn" title="Editar Configurações RCON"></button>
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-rcon-port-input">Porta RCON</label>
-                            <input type="number" id="edit-rcon-port-input" placeholder="Ex: 25575">
-                        </div>
-                        <div class="form-group">
-                            <label for="edit-rcon-pass-input">Senha RCON</label>
-                            <input type="password" id="edit-rcon-pass-input" placeholder="Sua senha RCON secreta">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="edit-path-input">Caminho da Pasta do Servidor (Opcional)</label>
-                        <input type="text" id="edit-path-input" placeholder="/home/user/servidores/meu_servidor">
-                        <small>Necessário para usar o Console.</small>
-                    </div>
-                    <div id="edit-error-message" class="error-message" style="display: none;"></div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" id="edit-btn-cancel" class="cancel-btn">Cancelar</button>
-                    <button type="submit" class="confirm-btn">Salvar Alterações</button>
-                </div>
-            </form>
+    <div class="modal-header">
+        <h2 data-i18n-key="modal_edit_title">Editar Servidor</h2>
+    </div>
+    <div class="modal-body">
+        <div class="form-group">
+            <label for="edit-name-input" data-i18n-key="modal_edit_label_custom_name">Nome Customizado</label>
+            <input type="text" id="edit-name-input" data-i18n-key="modal_edit_placeholder_custom_name" data-i18n-target="placeholder" placeholder="Deixe em branco para usar o nome padrão">
+        </div>
+        <div class="form-group">
+            <label for="edit-ip-input" data-i18n-key="modal_edit_label_address">Endereço do Servidor</label>
+            <input type="text" id="edit-ip-input" required>
+            <small data-i18n-key="modal_edit_help_address">Aviso: Alterar o endereço apagará o histórico deste servidor.</small>
+        </div>
+        <div class="rcon-settings-group">
+            <div class="rcon-settings-header">
+                <h4 data-i18n-key="modal_edit_title_rcon">Configurações RCON (Opcional)</h4>
+                <button type="button" class="card-action-btn" id="unlock-rcon-btn" title="Editar Configurações RCON"></button>
+            </div>
+            <div class="form-group">
+                <label for="edit-rcon-port-input" data-i18n-key="modal_edit_label_rcon_port">Porta RCON</label>
+                <input type="number" id="edit-rcon-port-input" data-i18n-key="modal_edit_placeholder_rcon_port" data-i18n-target="placeholder" placeholder="Ex: 25575">
+            </div>
+            <div class="form-group">
+                <label for="edit-rcon-pass-input" data-i18n-key="modal_edit_label_rcon_password">Senha RCON</label>
+                <input type="password" id="edit-rcon-pass-input" data-i18n-key="modal_edit_placeholder_rcon_password" data-i18n-target="placeholder" placeholder="Sua senha RCON secreta">
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="edit-path-input" data-i18n-key="modal_edit_label_path">Caminho da Pasta do Servidor (Opcional)</label>
+            <input type="text" id="edit-path-input" data-i18n-key="modal_edit_placeholder_path" data-i18n-target="placeholder" placeholder="/home/user/servidores/meu_servidor">
+            <small data-i18n-key="modal_edit_help_path">Necessário para usar o Console.</small>
+        </div>
+        <div id="edit-error-message" class="error-message" style="display: none;"></div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" id="edit-btn-cancel" class="cancel-btn" data-i18n-key="modal_edit_btn_cancel">Cancelar</button>
+        <button type="submit" class="confirm-btn" data-i18n-key="modal_edit_btn_save">Salvar Alterações</button>
+    </div>
+</form>
         </div>
     </div>
     <div id="chartjs-tooltip" class="chart-tooltip">

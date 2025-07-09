@@ -1,4 +1,78 @@
 document.addEventListener('DOMContentLoaded', async () => {
+    let translations = {};
+    let currentLangCode = 'pt';
+    async function loadTranslations(lang) {
+    try {
+        const response = await fetch(`/static/locales/${lang}.json`);
+        if (!response.ok) throw new Error('Dicionário não encontrado');
+        translations = await response.json();
+    } catch (error) {
+        console.error(`Falha ao carregar traduções para '${lang}', usando 'en' como padrão.`, error);
+        const response = await fetch(`/static/locales/en.json`);
+        translations = await response.json();
+    }
+}
+
+// Encontra todos os elementos marcados e aplica a tradução
+function translatePage() {
+    document.querySelectorAll('[data-i18n-key]').forEach(element => {
+        const key = element.getAttribute('data-i18n-key');
+        if (translations[key]) {
+            
+            // ---- INÍCIO DA CORREÇÃO ----
+            // Verifica se o alvo da tradução é um atributo (ex: placeholder)
+            const targetAttr = element.getAttribute('data-i18n-target');
+            
+            if (targetAttr) {
+                // Se for um atributo, usa setAttribute para mudá-lo
+                element.setAttribute(targetAttr, translations[key]);
+            } else {
+                // Senão, faz o que já fazia: muda o conteúdo de texto
+                const textNode = element.childNodes[element.childNodes.length - 1];
+                if (textNode && textNode.nodeType === Node.TEXT_NODE) {
+                    textNode.textContent = ' ' + translations[key];
+                }
+            }
+        }
+    });
+}
+
+function updateDynamicContent() {
+    // Por enquanto, ela só precisa repopular os filtros
+    if (typeof populateFilters === 'function') {
+        populateFilters();
+    }
+    // No futuro, se tiver outros conteúdos dinâmicos, adicione-os aqui
+}
+
+// Função principal para trocar o idioma
+async function setLanguage(lang) {
+    currentLangCode = lang;
+    await loadTranslations(lang);
+    translatePage();
+    updateDynamicContent();
+    localStorage.setItem('language', lang);
+
+    const ptBtn = document.getElementById('lang-pt-btn');
+    const enBtn = document.getElementById('lang-en-btn');
+    if (ptBtn && enBtn) {
+        if (lang === 'pt') {
+            ptBtn.classList.add('active');
+            enBtn.classList.remove('active');
+        } else {
+            enBtn.classList.add('active');
+            ptBtn.classList.remove('active');
+        }
+    }
+
+
+    if (navButtons.settings) {
+        navButtons.settings.addEventListener('click', () => {
+            // ... (o código que já estava aqui)
+            loadSettings();
+        });
+    }
+}
     Chart.register(ChartZoom);
 
     // --- LÓGICA DO MODAL DE CONFIRMAÇÃO ---
@@ -8,6 +82,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const confirmModalBtnConfirm = document.getElementById('modal-btn-confirm');
     const confirmModalBtnCancel = document.getElementById('modal-btn-cancel');
     let confirmCallback = null;
+
+    
 
     function showConfirmModal(title, message, onConfirm) {
         if (!confirmModal) return;
@@ -85,14 +161,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const originalIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>`;
     const pirataIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>`;
 
+    // Monta a chave de tradução, ex: "server_type_Original"
+    const translationKey = `server_type_${type}`;
+    // Busca a tradução. Se não encontrar, usa o tipo original.
+    const translatedType = translations[translationKey] || type;
+
     if (type === 'Original') {
-        // Usando template literals para combinar ícone e texto
-        return `${originalIcon} Original`;
+        return `${originalIcon} ${translatedType}`;
     }
     if (type === 'Pirata') {
-        return `${pirataIcon} Pirata`;
+        return `${pirataIcon} ${translatedType}`;
     }
-    return 'Indefinido'; // Mantém o padrão para outros casos
+    return translatedType; // Para "Indefinido", "Lista Oculta", etc.
 }
 
     const playerTooltip = document.createElement('div');
@@ -179,30 +259,53 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function setupTheme() {
-        const themeToggle = document.getElementById('theme-toggle');
-        const videoDark = document.getElementById('video-dark');
-        const videoLight = document.getElementById('video-light');
-        function applyTheme(theme) {
-            document.body.classList.toggle('light-mode', theme === 'light');
-            if (themeToggle) themeToggle.checked = (theme === 'light');
-            if (videoDark) videoDark.style.opacity = (theme === 'light' ? '0' : '1');
-            if (videoLight) videoLight.style.opacity = (theme === 'light' ? '1' : '0');
+    const darkBtn = document.getElementById('theme-btn-dark');
+    const lightBtn = document.getElementById('theme-btn-light');
+    const videoDark = document.getElementById('video-dark');
+    const videoLight = document.getElementById('video-light');
+
+    function applyTheme(theme) {
+        document.body.classList.toggle('light-mode', theme === 'light');
+        if (videoDark) videoDark.style.opacity = (theme === 'light' ? '0' : '1');
+        if (videoLight) videoLight.style.opacity = (theme === 'light' ? '1' : '0');
+
+        // Atualiza a classe .active nos botões
+        if (darkBtn && lightBtn) {
+            if (theme === 'light') {
+                lightBtn.classList.add('active');
+                darkBtn.classList.remove('active');
+            } else {
+                darkBtn.classList.add('active');
+                lightBtn.classList.remove('active');
+            }
         }
-        if (themeToggle) {
-            themeToggle.addEventListener('change', () => {
-                const newTheme = themeToggle.checked ? 'light' : 'dark';
-                localStorage.setItem('theme', newTheme);
-                applyTheme(newTheme);
-                if (historyChart && lastHistoryData && views['details'].style.display === 'block') {
-                    if(historyChart) historyChart.destroy();
-                    historyChart = null;
-                    renderHistoryChart(lastHistoryData);
-                }
-            });
+        
+        // Redesenha o gráfico se ele estiver visível
+        if (historyChart && lastHistoryData && views['details'].style.display === 'block') {
+            if(historyChart) historyChart.destroy();
+            historyChart = null;
+            renderHistoryChart(lastHistoryData);
         }
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        applyTheme(savedTheme);
     }
+
+    // Adiciona os eventos de clique aos novos botões
+    if (darkBtn) {
+        darkBtn.addEventListener('click', () => {
+            localStorage.setItem('theme', 'dark');
+            applyTheme('dark');
+        });
+    }
+    if (lightBtn) {
+        lightBtn.addEventListener('click', () => {
+            localStorage.setItem('theme', 'light');
+            applyTheme('light');
+        });
+    }
+
+    // Aplica o tema salvo ao iniciar
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    applyTheme(savedTheme);
+}
     function populateFilters() {
     if (!allServersCache.length) return;
 
@@ -229,13 +332,23 @@ document.addEventListener('DOMContentLoaded', async () => {
     const selectedBaseVersion = baseVersionFilter.value;
     const selectedType = typeFilter.value;
 
-    flavorFilter.innerHTML = '<option value="">Todos</option>';
-    baseVersionFilter.innerHTML = '<option value="">Todas</option>';
-    typeFilter.innerHTML = '<option value="">Todos</option>';
+    flavorFilter.innerHTML = `<option value="">${translations.filter_option_all_servers || 'Todos'}</option>`;
+    baseVersionFilter.innerHTML = `<option value="">${translations.filter_option_all_versions || 'Todas'}</option>`;
+    typeFilter.innerHTML = `<option value="">${translations.filter_option_all_servers || 'Todos'}</option>`;
 
     sortedFlavors.forEach(flavor => flavorFilter.add(new Option(flavor, flavor)));
     sortedBaseVersions.forEach(version => baseVersionFilter.add(new Option(version, version)));
-    sortedTypes.forEach(type => typeFilter.add(new Option(type, type)));
+    sortedTypes.forEach(type => {
+    // Montamos a chave que está no nosso dicionário JSON. Ex: "server_type_Original"
+    const translationKey = `server_type_${type}`;
+
+    // Procuramos a tradução. Se não achar, usamos o texto original como segurança.
+    const translatedText = translations[translationKey] || type;
+
+    // Criamos a opção usando o texto traduzido para o que o usuário vê,
+    // mas mantendo o valor original para o filtro funcionar.
+    typeFilter.add(new Option(translatedText, type));
+});
 
     flavorFilter.value = selectedFlavor;
     baseVersionFilter.value = selectedBaseVersion;
@@ -292,80 +405,107 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     function renderServerList(servers) {
-        if (!serverListContainer) return;
-        const preservedScroll = serverListContainer.scrollTop;
-        serverListContainer.innerHTML = '';
-        if (!servers || servers.length === 0) {
-            serverListContainer.innerHTML = '<p class="empty-message">Nenhum servidor para exibir. Adicione um na aba "Add Server".</p>';
-            return;
+    if (!serverListContainer) return;
+    const preservedScroll = serverListContainer.scrollTop;
+    serverListContainer.innerHTML = '';
+    if (!servers || servers.length === 0) {
+        serverListContainer.innerHTML = '<p class="empty-message">Nenhum servidor para exibir. Adicione um na aba "Add Server".</p>';
+        return;
+    }
+
+    servers.forEach(server => {
+        const card = document.createElement('div');
+        card.className = 'server-card';
+        card.dataset.ip = server.ip_servidor;
+        let statusText, statusClass;
+        const isOnline = server.status === 'online' && !server.pausado;
+
+        if (server.pausado) {
+            statusText = translations.card_status_paused || 'Pausado';
+            statusClass = 'paused';
+            card.classList.add('paused');
+        } else if (isOnline) {
+            statusText = translations.card_status_online || 'Online';
+            statusClass = 'online';
+            card.classList.remove('offline');
+        } else if (server.status === 'pending') {
+            statusText = translations.card_status_checking || 'Verificando...';
+            statusClass = 'paused';
+            card.classList.add('offline');
+        } else {
+            statusText = translations.card_status_offline || 'Offline';
+            statusClass = 'offline';
+            card.classList.add('offline');
         }
-        servers.forEach(server => {
-            const card = document.createElement('div');
-            card.className = 'server-card';
-            card.dataset.ip = server.ip_servidor;
-            let statusText, statusClass;
-            const isOnline = server.status === 'online' && !server.pausado;
-            
-            if (server.pausado) { statusText = 'Pausado'; statusClass = 'paused'; card.classList.add('paused');
-            } else if (isOnline) { statusText = 'Online'; statusClass = 'online'; card.classList.remove('offline');
-            } else if (server.status === 'pending') { statusText = 'Verificando...'; statusClass = 'paused'; card.classList.add('offline'); 
-            } else { statusText = 'Offline'; statusClass = 'offline'; card.classList.add('offline'); }
-            
-            const displayName = server.nome_customizado || server.nome_servidor || server.ip_servidor;
-            
-            const iconHTML = (server.tem_icone_customizado == 1)
-                ? `<div class="server-icon" data-lazy-type="icon" data-ip="${server.ip_servidor}"><span>${(displayName || '?').replace(/§[0-9a-fk-or]/gi, '').charAt(0).toUpperCase()}</span></div>`
-                : `<div class="server-icon" data-ip="${server.ip_servidor}"><img src="/static/grass.png" alt="Ícone padrão"></div>`;
-            
-            const flagImg = server.country_code ? `<img src="https://flagcdn.com/w20/${server.country_code.toLowerCase()}.png" alt="${server.localizacao}" class="flag-icon">` : '';
-            const locationHTML = `<span>${flagImg} ${server.localizacao || 'Buscando...'}</span>`;
 
-            card.innerHTML = `
-                <div class="card-header">
-                    <div class="server-icon-and-details">
-                        ${iconHTML}
-                        <div class="server-details">
-                            <h3></h3> 
-                            <p>${server.ip_servidor}</p>
-                        </div>
-                    </div>
-                    <div class="card-actions">
-                        <button class="card-action-btn edit-btn" title="Editar" data-ip="${server.ip_servidor}" data-action="edit">${editIconSVG()}</button>
-                        <button class="card-action-btn pause-btn" title="${server.pausado ? 'Reativar' : 'Pausar'}" data-ip="${server.ip_servidor}" data-action="pause">${server.pausado ? playIconSVG() : pauseIconSVG()}</button>
-                        <button class="card-action-btn delete-btn" title="Remover" data-ip="${server.ip_servidor}" data-action="delete">${removeIconSVG()}</button>
+        const displayName = server.nome_customizado || server.nome_servidor || server.ip_servidor;
+        const iconHTML = (server.tem_icone_customizado == 1)
+            ? `<div class="server-icon" data-lazy-type="icon" data-ip="${server.ip_servidor}"><span>${(displayName || '?').replace(/§[0-9a-fk-or]/gi, '').charAt(0).toUpperCase()}</span></div>`
+            : `<div class="server-icon" data-ip="${server.ip_servidor}"><img src="/static/grass.png" alt="Ícone padrão"></div>`;
+
+        const flagImg = server.country_code ? `<img src="https://flagcdn.com/w20/${server.country_code.toLowerCase()}.png" alt="${server.localizacao}" class="flag-icon">` : '';
+        const locationText = server.localizacao || (translations.card_location_fetching || 'Buscando...');
+        const locationHTML = `<span>${flagImg} ${locationText}</span>`;
+
+        // ---- TRADUÇÃO DOS TOOLTIPS ACONTECE AQUI ----
+        const editTitle = translations.card_tooltip_edit || 'Editar';
+        const pauseTitle = server.pausado ? (translations.card_tooltip_resume || 'Reativar') : (translations.card_tooltip_pause || 'Pausar');
+        const removeTitle = translations.card_tooltip_remove || 'Remover';
+
+        card.innerHTML = `
+            <div class="card-header">
+                <div class="server-icon-and-details">
+                    ${iconHTML}
+                    <div class="server-details">
+                        <h3></h3> 
+                        <p>${server.ip_servidor}</p>
                     </div>
                 </div>
-                <div class="player-info">
-                    <span>Ping: ${isOnline ? server.ping + 'ms' : '--'}</span>
-                    <span class="status-badge ${statusClass}">${statusText}</span>
+                <div class="card-actions">
+                    <button class="card-action-btn edit-btn" title="${editTitle}" data-ip="${server.ip_servidor}" data-action="edit">${editIconSVG()}</button>
+                    <button class="card-action-btn pause-btn" title="${pauseTitle}" data-ip="${server.ip_servidor}" data-action="pause">${server.pausado ? playIconSVG() : pauseIconSVG()}</button>
+                    <button class="card-action-btn delete-btn" title="${removeTitle}" data-ip="${server.ip_servidor}" data-action="delete">${removeIconSVG()}</button>
                 </div>
-                <div class="info-details">
-                     <div class="info-row"><span>Tipo:</span><span>${formatServerType(server.tipo_servidor)}</span></div>
-                     <div class="info-row"><span>Jogadores:</span><span>${isOnline ? `${server.jogadores_online} / ${server.jogadores_maximos}` : '--'}</span></div>
-                     <div class="info-row"><span>Versão:</span><span>${isOnline ? server.versao : '--'}</span></div>
-                     <div class="info-row"><span>Local:</span>${locationHTML}</div>
-                </div>`;
+            </div>
+            <div class="player-info">
+                <span>Ping: ${isOnline ? server.ping + 'ms' : '--'}</span>
+                <span class="status-badge ${statusClass}">${statusText}</span>
+            </div>
+            <div class="info-details">
+                 <div class="info-row"><span data-i18n-key="card_label_type">Tipo:</span><span>${formatServerType(server.tipo_servidor)}</span></div>
+                 <div class="info-row"><span data-i18n-key="card_label_players">Jogadores:</span><span>${isOnline ? `${server.jogadores_online} / ${server.jogadores_maximos}` : '--'}</span></div>
+                 <div class="info-row"><span data-i18n-key="card_label_version">Versão:</span><span>${isOnline ? server.versao : '--'}</span></div>
+                 <div class="info-row"><span data-i18n-key="card_label_location">Local:</span>${locationHTML}</div>
+            </div>`;
 
-            const motdContainer = card.querySelector('.server-details h3');
-            renderMotdInElement(displayName, motdContainer);
-            
-            serverListContainer.appendChild(card);
-        });
-        setupIntersectionObserver();
-        serverListContainer.scrollTop = preservedScroll;
-    }
+        const motdContainer = card.querySelector('.server-details h3');
+        renderMotdInElement(displayName, motdContainer);
+        
+        serverListContainer.appendChild(card);
+    });
     
-    let intersectionObserver = null;
-    function setupIntersectionObserver() {
-        const lazyElements = document.querySelectorAll('[data-lazy-type="icon"]');
-        if (intersectionObserver) intersectionObserver.disconnect();
-        intersectionObserver = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) { const element = entry.target; loadIcon(element); observer.unobserve(element); }
-            });
-        }, { rootMargin: "200px" });
-        lazyElements.forEach(el => intersectionObserver.observe(el));
-    }
+    setupIntersectionObserver();
+    serverListContainer.scrollTop = preservedScroll;
+    translatePage();
+}
+let intersectionObserver = null;
+function setupIntersectionObserver() {
+    const lazyElements = document.querySelectorAll('[data-lazy-type="icon"]');
+    if (intersectionObserver) intersectionObserver.disconnect();
+    
+    intersectionObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const element = entry.target;
+                loadIcon(element);
+                observer.unobserve(element);
+            }
+        });
+    }, { rootMargin: "200px" });
+
+    lazyElements.forEach(el => intersectionObserver.observe(el));
+}
+
     // Função para gerenciar o console ao vivo
 function setupConsole(serverIp) {
     if (consoleSocket) {
@@ -380,7 +520,8 @@ function setupConsole(serverIp) {
     logDisplay.innerHTML = ''; // Limpa o console antigo
     const connectingLine = document.createElement('div');
     connectingLine.className = 'log-status';
-    connectingLine.textContent = 'Conectando ao console do servidor...';
+    // --- TRADUZIDO ---
+    connectingLine.textContent = translations.console_connecting || 'Conectando ao console do servidor...';
     logDisplay.appendChild(connectingLine);
 
     const wsProtocol = window.location.protocol === 'https' ? 'wss' : 'ws';
@@ -393,30 +534,23 @@ function setupConsole(serverIp) {
     };
 
     consoleSocket.onmessage = (event) => {
-        if (logDisplay.textContent.includes('Conectando ao console')) {
+        if (logDisplay.textContent.includes(translations.console_connecting || 'Conectando ao console')) {
             logDisplay.innerHTML = '';
         }
         
         const msg = JSON.parse(event.data);
-
-        // --- DIAGNÓSTICO JAVASCRIPT ---
-        console.log("MENSAGEM BRUTA RECEBIDA:", event.data);
-        console.log("MENSAGEM APÓS PARSE:", msg);
-        console.log("TIPO DE DADO (msg.data):", typeof msg.data);
-        console.log("CONTEÚDO (msg.data):", msg.data);
-        // --- FIM DO DIAGNÓSTICO ---
-
         const logLine = document.createElement('div');
         logLine.textContent = msg.data;
 
-        // Aplica o estilo baseado no tipo da mensagem
         switch (msg.type) {
             case 'status':
                 logLine.className = 'log-status';
                 if (msg.data.includes('ao vivo')) {
-                    consoleTitle.innerHTML = '🔴 Console ao Vivo';
+                    // --- TRADUZIDO ---
+                    consoleTitle.innerHTML = translations.console_title_live || '🔴 Console ao Vivo';
                 } else if (msg.data.includes('RCON')) {
-                    consoleTitle.innerHTML = '📟 Console RCON';
+                    // --- TRADUZIDO ---
+                    consoleTitle.innerHTML = translations.console_title_rcon || '📟 Console RCON';
                 }
                 break;
             case 'log':
@@ -449,7 +583,8 @@ function setupConsole(serverIp) {
         logLine.textContent = '';
         logDisplay.appendChild(logLine);
         logDisplay.scrollTop = logDisplay.scrollHeight;
-        consoleTitle.innerHTML = '🔌 Console Desconectado';
+        // --- TRADUZIDO ---
+        consoleTitle.innerHTML = translations.console_title_disconnected || '🔌 Console Desconectado';
     };
 
     commandInput.onkeydown = (event) => {
@@ -627,72 +762,82 @@ function setupConsole(serverIp) {
 
 
     function setupSettingsPage() {
-    // --- 1. DECLARAÇÃO DE TODOS OS ELEMENTOS ---
-    // Todas as variáveis que vamos usar são declaradas aqui no início.
+    // --- 1. SELEÇÃO DE TODOS OS ELEMENTOS DA PÁGINA ---
+    const webhookInput = document.getElementById('discord-webhook-input');
     const statusToggle = document.getElementById('notify-status-toggle');
     const peakToggle = document.getElementById('notify-peak-toggle');
     const milestoneToggle = document.getElementById('notify-milestone-toggle');
     const firstJoinToggle = document.getElementById('notify-first-join-toggle');
     const saveButton = document.getElementById('save-settings-btn');
-
     const watchlistPlayerInput = document.getElementById('watchlist-player-input');
     const addWatchlistPlayerBtn = document.getElementById('add-watchlist-player-btn');
     const watchlistPlayerList = document.getElementById('watchlist-player-list');
-    
-    let currentServerForWatchlist = null; // Guarda o IP do servidor para a watchlist
+    const webhookErrorMsg = document.getElementById('webhook-error-message');
+    const watchlistErrorMsg = document.getElementById('watchlist-error-message');
+    const ptBtn = document.getElementById('lang-pt-btn');
+    const enBtn = document.getElementById('lang-en-btn');
+
+    let currentServerForWatchlist = null;
 
     // --- 2. FUNÇÕES AUXILIARES ---
-    // Função para carregar todas as configurações da API
     async function loadSettings() {
         try {
             const response = await fetch('/api/settings/global');
             if (!response.ok) {
-                console.error("API de configurações não encontrada (404). O backend está com os endpoints corretos?");
+                console.error("API de configurações não encontrada (404).");
                 return;
-            };
+            }
             const settings = await response.json();
             
             if (settings) {
-                webhookInput.value = settings.discord_webhook_url || '';
-                statusToggle.checked = settings.notificar_online_offline;
-                peakToggle.checked = settings.notificar_pico_jogadores;
-                milestoneToggle.checked = settings.notificar_marcos_lotacao;
-                firstJoinToggle.checked = settings.notificar_primeira_entrada;
+                if (webhookInput) webhookInput.value = settings.discord_webhook_url || '';
+                if (statusToggle) statusToggle.checked = settings.notificar_online_offline;
+                if (peakToggle) peakToggle.checked = settings.notificar_pico_jogadores;
+                if (milestoneToggle) milestoneToggle.checked = settings.notificar_marcos_lotacao;
+                if (firstJoinToggle) firstJoinToggle.checked = settings.notificar_primeira_entrada;
             }
 
             if (allServersCache.length > 0) {
                 currentServerForWatchlist = allServersCache[0].ip_servidor;
                 const wlResponse = await fetch(`/api/watchlist/${currentServerForWatchlist}`);
-                if (!wlResponse.ok) return;
-                const watchlist = await wlResponse.json();
-                renderWatchlist(watchlist);
+                if (wlResponse.ok) {
+                    const watchlist = await wlResponse.json();
+                    renderWatchlist(watchlist);
+                }
             }
         } catch (error) {
             console.error("Erro ao carregar configurações:", error);
         }
     }
 
-    // Função para renderizar a lista de jogadores vigiados
     function renderWatchlist(players) {
+        if (!watchlistPlayerList) return;
         watchlistPlayerList.innerHTML = '';
         players.forEach(player => {
             const li = document.createElement('li');
-            li.dataset.playerName = player.nome_jogador;
+            const playerName = player.nome_jogador;
+            li.dataset.playerName = playerName;
+            const headUrl = `https://minotar.net/avatar/${playerName}/28`;
+
             li.innerHTML = `
-                <span>${player.nome_jogador}</span>
-                <button class="remove-watchlist-btn" title="Remover Jogador">&times;</button>
+                <div class="player-info-left">
+                    <img src="${headUrl}" class="player-head" alt="${playerName}" onerror="this.onerror=null; this.src='/static/player-head-cracked.jpg';">
+                    <span class="player-name">${playerName}</span>
+                </div>
+                <button class="remove-watchlist-btn" title="${translations.card_tooltip_remove || 'Remover'}" data-player-name="${playerName}">&times;</button>
             `;
             watchlistPlayerList.appendChild(li);
         });
     }
 
     // --- 3. CONFIGURAÇÃO DOS EVENTOS ---
-    // A ordem aqui é crucial. Os elementos precisam existir antes de adicionarmos eventos a eles.
+    if(ptBtn) ptBtn.addEventListener('click', () => setLanguage('pt'));
+    if(enBtn) enBtn.addEventListener('click', () => setLanguage('en'));
 
-    // Evento para salvar as configurações gerais
     if (saveButton) {
         saveButton.addEventListener('click', async () => {
-            saveButton.textContent = 'Salvando...';
+            saveButton.disabled = true;
+            saveButton.textContent = translations.settings_btn_saving || 'Salvando...';
             const settingsToSave = {
                 discord_webhook_url: webhookInput.value.trim(),
                 notificar_online_offline: statusToggle.checked,
@@ -706,36 +851,24 @@ function setupConsole(serverIp) {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(settingsToSave)
                 });
-                alert('Configurações salvas com sucesso!');
+                alert(translations.settings_alert_success || 'Configurações salvas com sucesso!');
             } catch (error) {
-                alert('Falha ao salvar configurações.');
+                alert(translations.settings_alert_error || 'Falha ao salvar configurações.');
             } finally {
-                saveButton.textContent = 'Salvar Configurações';
+                saveButton.disabled = false;
+                saveButton.textContent = translations.settings_btn_save || 'Salvar Configurações';
             }
         });
     }
 
-    // Evento para adicionar jogador à watchlist
     if (addWatchlistPlayerBtn) {
         addWatchlistPlayerBtn.addEventListener('click', async () => {
-            const webhookURL = webhookInput.value.trim();
-            if (!webhookURL) {
-                alert('Por favor, adicione uma URL de Webhook do Discord antes de adicionar jogadores!');
-                webhookInput.focus();
+            if (!webhookInput.value.trim()) {
+                alert('A URL do Webhook do Discord é necessária para notificações de jogador.');
                 return;
             }
-
             const playerName = watchlistPlayerInput.value.trim();
-            if (!playerName) {
-                alert('Por favor, digite o nome de um jogador para adicionar.');
-                watchlistPlayerInput.focus();
-                return;
-            }
-
-            if (!currentServerForWatchlist) {
-                alert('Não há servidores sendo monitorados para associar a este jogador.');
-                return;
-            }
+            if (!playerName || !currentServerForWatchlist) return;
 
             try {
                 const response = await fetch(`/api/watchlist/${currentServerForWatchlist}`, {
@@ -745,9 +878,7 @@ function setupConsole(serverIp) {
                 });
                 if (response.ok) {
                     watchlistPlayerInput.value = '';
-                    const wlResponse = await fetch(`/api/watchlist/${currentServerForWatchlist}`);
-                    const watchlist = await wlResponse.json();
-                    renderWatchlist(watchlist);
+                    loadSettings(); // Recarrega a lista
                 } else {
                     const error = await response.json();
                     alert(`Erro: ${error.detail}`);
@@ -758,33 +889,39 @@ function setupConsole(serverIp) {
         });
     }
 
-    // Evento para remover jogador da watchlist (usando delegação de evento)
     if (watchlistPlayerList) {
         watchlistPlayerList.addEventListener('click', async (e) => {
-            if (e.target && e.target.classList.contains('remove-watchlist-btn')) {
-                const playerLi = e.target.closest('li');
-                const playerName = playerLi.dataset.playerName;
-                if (!playerName || !currentServerForWatchlist) return;
+            const removeBtn = e.target.closest('.remove-watchlist-btn');
+            if (removeBtn) {
+                const playerName = removeBtn.dataset.playerName;
+                if (!playerName) return;
 
-                if (confirm(`Tem certeza que deseja parar de monitorar ${playerName}?`)) {
+                const title = translations.watchlist_remove_title || 'Remover Jogador';
+                const message = (translations.watchlist_remove_message || 'Tem certeza que deseja parar de monitorar {player}?').replace('{player}', playerName);
+
+                showConfirmModal(title, message, async () => {
                     try {
                         const response = await fetch(`/api/watchlist/${currentServerForWatchlist}/${playerName}`, { method: 'DELETE' });
                         if (response.ok) {
-                            playerLi.remove();
+                            loadSettings(); // Recarrega a lista
                         } else {
                             alert('Falha ao remover jogador.');
                         }
                     } catch (error) {
-                        alert('Falha ao remover jogador.');
+                        alert('Falha na conexão ao remover jogador.');
                     }
-                }
+                });
             }
         });
     }
-
-    // Carrega as configurações quando a aba de settings for mostrada
+    
+    // Listener para o botão de navegação "Settings"
     if (navButtons.settings) {
-        navButtons.settings.addEventListener('click', loadSettings);
+        navButtons.settings.addEventListener('click', () => {
+            if (webhookErrorMsg) webhookErrorMsg.style.display = 'none';
+            if (watchlistErrorMsg) watchlistErrorMsg.style.display = 'none';
+            loadSettings();
+        });
     }
 }
 
@@ -813,13 +950,11 @@ const customTooltipHandler = (context) => {
     const { chart, tooltip } = context;
     const tooltipEl = getOrCreateTooltip(chart);
 
-    // Esconde se não tiver nada para mostrar
     if (tooltip.opacity === 0) {
         tooltipEl.style.opacity = 0;
         return;
     }
 
-    // Define o Título (a data)
     if (tooltip.title) {
         const titleEl = tooltipEl.querySelector('.tooltip-title');
         titleEl.innerText = tooltip.title;
@@ -832,40 +967,34 @@ const customTooltipHandler = (context) => {
         const dataPoint = tooltip.dataPoints[i];
         const datasetLabel = dataPoint.dataset.label;
         const rawValue = dataPoint.raw;
-
         let pointColor;
 
-        // ▼▼▼ A LÓGICA CORRIGIDA ESTÁ AQUI ▼▼▼
-        if (datasetLabel === 'Entrada/Saída') {
-            // Define a cor como VERMELHA, permanentemente.
+        // ---- LÓGICA CORRIGIDA AQUI ----
+        // Agora verificamos o 'id' que não muda, em vez do 'label' que é traduzido
+        if (dataPoint.dataset.id === 'io') {
             pointColor = getComputedStyle(document.documentElement).getPropertyValue('--text-negative').trim();
         } else {
-            // Para as outras, mantém a cor da linha do gráfico.
             pointColor = dataPoint.dataset.borderColor;
         }
 
-        // --- Construção do item do tooltip ---
         const item = document.createElement('div');
         item.classList.add('tooltip-item');
-
         const point = document.createElement('span');
         point.classList.add('tooltip-point');
         point.style.backgroundColor = pointColor;
         point.style.borderColor = pointColor;
-
         const label = document.createElement('span');
         label.classList.add('tooltip-label');
-        label.innerText = datasetLabel + ':';
-
+        label.innerText = datasetLabel + ':'; // Usa o label já traduzido
         const value = document.createElement('span');
         value.classList.add('tooltip-value');
 
-        // Formatação do valor
-        if (datasetLabel === 'Lotação (%)') {
+        // A formatação do valor agora também usa o 'id' para ser mais segura
+        if (dataPoint.dataset.id === 'occupancy') {
             value.innerText = parseFloat(rawValue).toFixed(2) + '%';
-        } else if (datasetLabel === 'Ping (ms)') {
+        } else if (dataPoint.dataset.id === 'ping') {
             value.innerText = rawValue + 'ms';
-        } else if (datasetLabel === 'Entrada/Saída') {
+        } else if (dataPoint.dataset.id === 'io') {
             value.innerText = (rawValue > 0 ? '+' : '') + rawValue;
         } else {
             value.innerText = rawValue;
@@ -878,32 +1007,15 @@ const customTooltipHandler = (context) => {
     });
 
     const { offsetLeft: positionX, offsetTop: positionY } = chart.canvas;
-
-    // Posiciona o tooltip na tela
     tooltipEl.style.opacity = 1;
     tooltipEl.style.left = positionX + tooltip.caretX + 'px';
     tooltipEl.style.top = positionY + tooltip.caretY + 'px';
 };
-
-// Dentro de initializeApp(), chame a nova função:
-async function initializeApp() {
-    try {
-        // ... (outras chamadas de setup)
-        setupAddForms();
-        setupCardActions();
-        setupSettingsPage(); // <-- ADICIONE A CHAMADA AQUI
-        // ... (resto da função)
-    } catch (error) {
-        // ...
-    }
-}
-
     function renderHistoryChart(data) {
     const canvas = document.getElementById('history-chart');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
 
-    // Se não houver dados, limpa o canvas e mostra a mensagem
     if (!data || data.length === 0) {
         if (historyChart) {
             historyChart.destroy();
@@ -927,9 +1039,6 @@ async function initializeApp() {
     const textPositive = getComputedStyle(document.documentElement).getPropertyValue('--text-positive').trim();
     const textNegative = getComputedStyle(document.documentElement).getPropertyValue('--text-negative').trim();
 
-
-    // --- A MÁGICA ACONTECE AQUI ---
-    // Se o gráfico JÁ EXISTE, apenas atualizamos os dados
     if (historyChart) {
         historyChart.data.labels = labels;
         historyChart.data.datasets[0].data = variacao;
@@ -938,15 +1047,13 @@ async function initializeApp() {
         historyChart.data.datasets[1].data = lotacao;
         historyChart.data.datasets[2].data = pings;
         historyChart.data.datasets[3].data = jogadores;
-        historyChart.update('none'); // 'none' para uma atualização sem animação, mais suave
-        return; // Sai da função após atualizar
+        historyChart.update('none');
+        return;
     }
 
-    // Se o gráfico NÃO EXISTE (primeira vez), nós o criamos
     const legendContainer = document.getElementById('details-legend-container');
-    if(legendContainer) legendContainer.innerHTML = ''; // Limpa a legenda só na criação
+    if(legendContainer) legendContainer.innerHTML = ''; 
     
-    const primaryColor = getComputedStyle(document.documentElement).getPropertyValue('--text-primary').trim();
     const gridColor = getComputedStyle(document.documentElement).getPropertyValue('--border-color').trim();
     const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text-secondary').trim();
     const accentBlue = getComputedStyle(document.documentElement).getPropertyValue('--accent-blue').trim();
@@ -957,58 +1064,43 @@ async function initializeApp() {
         data: {
             labels: labels,
             datasets: [
-                { type: 'bar', label: 'Entrada/Saída', data: variacao, backgroundColor: variacao.map(v => v > 0 ? textPositive : (v < 0 ? textNegative : 'transparent')), borderColor: variacao.map(v => v > 0 ? textPositive : (v < 0 ? textNegative : 'transparent')), barThickness: 4, yAxisID: 'yVariacao', order: 3 },
-                { type: 'line', label: 'Lotação (%)', data: lotacao, borderColor: accentOrange, yAxisID: 'yLotacao', tension: 0.4, borderWidth: 3.5, pointRadius: 0, pointHoverRadius: 6, pointBackgroundColor: accentOrange, pointBorderColor: 'white', order: 2 },
-                { type: 'line', label: 'Ping (ms)', data: pings, borderColor: accentGreen, yAxisID: 'yPing', tension: 0.4, borderWidth: 3.5, pointRadius: 0, pointHoverRadius: 6, pointBackgroundColor: accentGreen, pointBorderColor: 'white', order: 1 },
-                { type: 'line', label: 'Jogadores', data: jogadores, borderColor: accentBlue, backgroundColor: 'transparent', yAxisID: 'yJogadores', tension: 0.4, borderWidth: 3.5, pointRadius: 0, pointHoverRadius: 6, pointBackgroundColor: accentBlue, pointBorderColor: 'white', order: 0, clip: false }
+                { id: 'io', type: 'bar', label: translations.legend_io || 'Entrada/Saída', data: variacao, backgroundColor: variacao.map(v => v > 0 ? textPositive : (v < 0 ? textNegative : 'transparent')), borderColor: variacao.map(v => v > 0 ? textPositive : (v < 0 ? textNegative : 'transparent')), barThickness: 4, yAxisID: 'yVariacao', order: 3 },
+                { id: 'occupancy', type: 'line', label: translations.legend_occupancy || 'Lotação (%)', data: lotacao, borderColor: accentOrange, yAxisID: 'yLotacao', tension: 0.4, borderWidth: 3.5, pointRadius: 0, pointHoverRadius: 6, pointBackgroundColor: accentOrange, pointBorderColor: 'white', order: 2 },
+                { id: 'ping', type: 'line', label: translations.legend_ping || 'Ping (ms)', data: pings, borderColor: accentGreen, yAxisID: 'yPing', tension: 0.4, borderWidth: 3.5, pointRadius: 0, pointHoverRadius: 6, pointBackgroundColor: accentGreen, pointBorderColor: 'white', order: 1 },
+                { id: 'players', type: 'line', label: translations.legend_players || 'Jogadores', data: jogadores, borderColor: accentBlue, backgroundColor: 'transparent', yAxisID: 'yJogadores', tension: 0.4, borderWidth: 3.5, pointRadius: 0, pointHoverRadius: 6, pointBackgroundColor: accentBlue, pointBorderColor: 'white', order: 0, clip: false }
             ]
         },
         options: {
-            // Suas opções de gráfico continuam exatamente as mesmas aqui...
             responsive: true,
             maintainAspectRatio: false,
             animation: { duration: 0 },
             interaction: { intersect: false, mode: 'index' },
             scales: {
-                x: {
-                    type: 'time',
-                    time: { unit: 'hour', tooltipFormat: 'dd/MM HH:mm', displayFormats: { hour: 'HH:mm', day: 'dd/MM' } },
-                    ticks: { color: textColor, maxRotation: 0, autoSkip: true },
-                    grid: { drawOnChartArea: false, drawBorder: false },
-                },
-                yPing: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Ping (ms)', color: textColor }, grid: { drawOnChartArea: false }, min: 0, ticks: { color: textColor } },
-                yLotacao: { type: 'linear', display: true, position: 'right', title: { display: true, text: 'Lotação (%)', color: textColor }, min: 0, max: 100, grid: { drawOnChartArea: false }, ticks: { color: textColor, callback: value => value + '%' } },
-                yJogadores: { type: 'linear', display: true, position: 'left', title: { display: true, text: 'Jogadores', color: textColor }, min: 0, suggestedMax: 10, grid: { color: gridColor, borderDash: [2, 3], drawBorder: false }, ticks: { color: textColor, precision: 0 } },
+                x: { type: 'time', time: { unit: 'hour', tooltipFormat: 'dd/MM HH:mm', displayFormats: { hour: 'HH:mm', day: 'dd/MM' } }, ticks: { color: textColor, maxRotation: 0, autoSkip: true }, grid: { drawOnChartArea: false, drawBorder: false } },
+                yPing: { type: 'linear', display: true, position: 'right', title: { display: true, text: translations.legend_ping || 'Ping (ms)', color: textColor }, grid: { drawOnChartArea: false }, min: 0, ticks: { color: textColor } },
+                yLotacao: { type: 'linear', display: true, position: 'right', title: { display: true, text: translations.legend_occupancy || 'Lotação (%)', color: textColor }, min: 0, max: 100, grid: { drawOnChartArea: false }, ticks: { color: textColor, callback: value => value + '%' } },
+                yJogadores: { type: 'linear', display: true, position: 'left', title: { display: true, text: translations.legend_players || 'Jogadores', color: textColor }, min: 0, suggestedMax: 10, grid: { color: gridColor, borderDash: [2, 3], drawBorder: false }, ticks: { color: textColor, precision: 0 } },
                 yVariacao: { display: false }
             },
-             plugins: {
-        legend: { display: false },
-        tooltip: {
-            enabled: false,
-            external: customTooltipHandler,
-            events: ['click'] // <-- ADICIONE ESTA LINHA MÁGICA
-        },
-                zoom: {
-                    // ... suas opções de zoom continuam aqui ...
-                    pan: { enabled: true, mode: 'x', modifierKey: 'ctrl' },
-                    zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' },
-                    onZoomComplete: function ({ chart }) {
-                        document.getElementById('contextual-reset-zoom-btn').classList.remove('hidden');
-                    },
-                    onPanComplete: function ({ chart }) {
-                        document.getElementById('contextual-reset-zoom-btn').classList.remove('hidden');
-                    }
-                }
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    enabled: false,
+                    external: customTooltipHandler,
+                    events: ['click']
+                },
+                zoom: { pan: { enabled: true, mode: 'x', modifierKey: 'ctrl' }, zoom: { wheel: { enabled: true }, pinch: { enabled: true }, mode: 'x' }, onZoomComplete: function ({ chart }) { document.getElementById('contextual-reset-zoom-btn').classList.remove('hidden'); }, onPanComplete: function ({ chart }) { document.getElementById('contextual-reset-zoom-btn').classList.remove('hidden'); } }
             }
         }
     });
+
     canvas.addEventListener('mouseleave', () => {
         const tooltipEl = getOrCreateTooltip(historyChart);
         if (tooltipEl) {
             tooltipEl.style.opacity = 0;
         }
     });
-    // Renderiza a legenda customizada (apenas na criação do gráfico)
+
     if (legendContainer) {
         historyChart.data.datasets.forEach((dataset, index) => {
             const legendItem = document.createElement('div');
@@ -1020,7 +1112,7 @@ async function initializeApp() {
             symbol.style.backgroundColor = symbolColor;
             const text = document.createElement('span');
             text.className = 'legend-text';
-            text.innerText = dataset.label;
+            text.innerText = dataset.label; // Pega o label já traduzido
             legendItem.appendChild(symbol);
             legendItem.appendChild(text);
             legendItem.onclick = () => {
@@ -1038,65 +1130,68 @@ async function initializeApp() {
     const onlineListEl = document.getElementById('details-player-list');
     const offlineListEl = document.getElementById('details-offline-player-list');
     const onlineCountEl = document.getElementById('details-player-count');
+    
+    // ---- CORREÇÃO AQUI: Agora ele busca pelo ID que adicionamos ----
+    const offlineTitleEl = document.getElementById('details-last-seen-title'); 
+
+    // Traduz o título dos jogadores offline
+    if (offlineTitleEl) {
+        offlineTitleEl.textContent = translations.details_last_seen_title || 'Vistos por Último';
+    }
 
     if (onlineListEl && onlineCountEl) {
         onlineListEl.innerHTML = '';
         
-        // --- INÍCIO DA ALTERAÇÃO ---
-        // Se maxPlayers for um número válido, mostra o formato (X/Y), senão, mostra só o atual
+        // Traduz o título dos jogadores online
         if (maxPlayers && maxPlayers > 0) {
-            onlineCountEl.textContent = `Jogadores Online (${onlinePlayers.length} / ${maxPlayers})`;
+            let title = translations.details_online_players_title || 'Jogadores Online ({current}/{max})';
+            onlineCountEl.textContent = title.replace('{current}', onlinePlayers.length).replace('{max}', maxPlayers);
         } else {
-            onlineCountEl.textContent = `Jogadores Online (${onlinePlayers.length})`;
+            let title = translations.details_online_players_title_no_max || 'Jogadores Online ({current})';
+            onlineCountEl.textContent = title.replace('{current}', onlinePlayers.length);
         }
-        // --- FIM DA ALTERAÇÃO ---
 
+        // Traduz a mensagem de lista vazia
         if (onlinePlayers.length === 0) {
-    onlineListEl.innerHTML = '<li>Nenhum jogador online.</li>';
-} else {
-    onlinePlayers.sort().forEach(playerName => { // Renomeei para 'playerName' por clareza
-        const li = document.createElement('li');
-        const headUrl = `https://minotar.net/avatar/${playerName}/28`;
-
-        // Usamos a MESMA estrutura que fizemos para a lista de offline
-        li.innerHTML = `
-    <div class="player-info-left">
-        <img src="${headUrl}" class="player-head" alt="${playerName}" onerror="this.onerror=null; this.src='/static/player-head-cracked.jpg';">
-        <span class="player-name">${playerName}</span>
-    </div>
-`;
-        onlineListEl.appendChild(li);
-    });
-}
-    }
-
-        if (offlineListEl) {
-            offlineListEl.innerHTML = '';
-            if (offlinePlayers.length === 0) {
-                offlineListEl.innerHTML = '<li>Nenhum jogador visto recentemente.</li>';
-            } else {
-    offlinePlayers.forEach(player => {
-    const li = document.createElement('li');
-    const playerName = player.nome_jogador;
-    const lastSeenFormatted = formatLastSeen(player.ultima_vez_visto);
-    
-    // A ÚNICA LINHA QUE MUDAMOS FOI ESTA AQUI:
-    const headUrl = `https://minotar.net/avatar/${playerName}/28`;
-
-    // O resto continua igual
-    li.innerHTML = `
-    <div class="player-info-left">
-        <img src="${headUrl}" class="player-head" alt="${playerName}" onerror="this.onerror=null; this.src='/static/player-head-cracked.jpg';">
-        <span class="player-name">${playerName}</span>
-    </div>
-    <span class="player-offline-time">${lastSeenFormatted}</span>
-`;
-
-    offlineListEl.appendChild(li);
-});
-            }
+            const emptyMsg = translations.details_no_players_online || 'Nenhum jogador online.';
+            onlineListEl.innerHTML = `<li>${emptyMsg}</li>`;
+        } else {
+            onlinePlayers.sort().forEach(playerName => {
+                const li = document.createElement('li');
+                const headUrl = `https://minotar.net/avatar/${playerName}/28`;
+                li.innerHTML = `
+                    <div class="player-info-left">
+                        <img src="${headUrl}" class="player-head" alt="${playerName}" onerror="this.onerror=null; this.src='/static/player-head-cracked.jpg';">
+                        <span class="player-name">${playerName}</span>
+                    </div>`;
+                onlineListEl.appendChild(li);
+            });
         }
     }
+
+    if (offlineListEl) {
+        offlineListEl.innerHTML = '';
+        // Traduz a mensagem de lista vazia
+        if (offlinePlayers.length === 0) {
+            const emptyMsg = translations.details_no_players_seen || 'Nenhum jogador visto recentemente.';
+            offlineListEl.innerHTML = `<li>${emptyMsg}</li>`;
+        } else {
+            offlinePlayers.forEach(player => {
+                const li = document.createElement('li');
+                const playerName = player.nome_jogador;
+                const lastSeenFormatted = formatLastSeen(player.ultima_vez_visto);
+                const headUrl = `https://minotar.net/avatar/${playerName}/28`;
+                li.innerHTML = `
+                    <div class="player-info-left">
+                        <img src="${headUrl}" class="player-head" alt="${playerName}" onerror="this.onerror=null; this.src='/static/player-head-cracked.jpg';">
+                        <span class="player-name">${playerName}</span>
+                    </div>
+                    <span class="player-offline-time">${lastSeenFormatted}</span>`;
+                offlineListEl.appendChild(li);
+            });
+        }
+    }
+}
 
     async function updateHeatmap(serverIp, maxPlayers, date) {
     const monthLabel = document.getElementById('heatmap-month-label');
@@ -1106,7 +1201,8 @@ async function initializeApp() {
     if (!monthLabel || !prevBtn || !nextBtn) return;
 
     // Atualiza o título com o nome do mês e ano
-    const monthName = date.toLocaleString('pt-BR', { month: 'long' });
+    const localeCode = currentLangCode === 'en' ? 'en-US' : 'pt-BR';
+    const monthName = date.toLocaleString(localeCode, { month: 'long' });
     monthLabel.textContent = `${monthName.charAt(0).toUpperCase() + monthName.slice(1)} ${date.getFullYear()}`;
 
     // Desabilita o botão "próximo" se estivermos no mês atual ou futuro
@@ -1138,46 +1234,43 @@ async function initializeApp() {
 function renderCalendarHeatmap(data, maxPlayers, referenceDate) {
     const container = document.getElementById('cal-heatmap');
     if (!container) return;
+    container.innerHTML = ''; 
 
-    container.innerHTML = ''; // Limpa o conteúdo antigo
+    const weekdayContainer = document.createElement('div');
+    weekdayContainer.className = 'heatmap-weekdays';
+    const dayGridContainer = document.createElement('div');
+    dayGridContainer.className = 'heatmap-day-grid';
 
-    // O resto da sua função continua quase igual, mas usando 'referenceDate'
-    // em vez de 'new Date()' para os cálculos.
-
-    const dataMap = new Map();
-    if (data && data.length > 0) {
-        data.forEach(d => {
-            const date = new Date(Number(d.timestamp) * 1000);
-            const dateString = date.toISOString().split('T')[0];
-            dataMap.set(dateString, d.value);
-        });
-    }
-
+    const dataMap = new Map(data.map(d => [new Date(Number(d.timestamp) * 1000).toISOString().split('T')[0], d.value]));
     const currentYear = referenceDate.getFullYear();
     const currentMonth = referenceDate.getMonth();
-
     const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
-    const startingWeekday = firstDayOfMonth.getDay(); // 0 (Dom) a 6 (Sáb)
+    const startingWeekday = firstDayOfMonth.getDay();
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-    const grid = document.createElement('div');
-    grid.className = 'custom-heatmap-grid';
-
-    const weekdays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+    const weekdays = [
+        translations.heatmap_weekday_sun || 'DOM', translations.heatmap_weekday_mon || 'SEG',
+        translations.heatmap_weekday_tue || 'TER', translations.heatmap_weekday_wed || 'QUA',
+        translations.heatmap_weekday_thu || 'QUI', translations.heatmap_weekday_fri || 'SEX',
+        translations.heatmap_weekday_sat || 'SÁB'
+    ];
+    
     weekdays.forEach(day => {
         const weekdayCell = document.createElement('div');
         weekdayCell.className = 'heatmap-weekday';
         weekdayCell.textContent = day;
-        grid.appendChild(weekdayCell);
+        weekdayContainer.appendChild(weekdayCell);
     });
 
     for (let i = 0; i < startingWeekday; i++) {
-        grid.appendChild(document.createElement('div'));
+        dayGridContainer.appendChild(document.createElement('div'));
     }
 
     const today = new Date();
+    
+    // Esta função de cor está correta, não precisa mudar.
     function getColorForLotação(value, max) {
-        if (value <= 0 || !max || max <= 0) return 'rgba(100, 116, 139, 0.2)';
+        if (value <= 0 || !max || max <= 0) return 'rgba(100, 116, 139, 0.2)'; // Cinza claro para dias passados sem dados
         const lotacao = value / max;
         if (lotacao <= 0.20) return '#6ee7b7';
         else if (lotacao <= 0.45) return 'var(--accent-green)';
@@ -1190,62 +1283,76 @@ function renderCalendarHeatmap(data, maxPlayers, referenceDate) {
         const dayCell = document.createElement('div');
         dayCell.className = 'heatmap-day';
 
-        // Só processa e colore dias que já aconteceram
-        // (Comparando com a data atual, não a de referência)
+        // ---- A LÓGICA CORRIGIDA ESTÁ AQUI ----
         if (date <= today) {
+            // DIAS PASSADOS: Pinta com a cor da atividade ou um cinza claro se não houver dados.
             const dateString = date.toISOString().split('T')[0];
             const value = dataMap.get(dateString) || 0;
-
             dayCell.style.backgroundColor = getColorForLotação(value, maxPlayers);
-
+            
+            const localeCode = currentLangCode === 'en' ? 'en-US' : 'pt-BR';
+            const formattedDate = date.toLocaleDateString(localeCode, { year: 'numeric', month: '2-digit', day: '2-digit' });
             const lotacaoPercent = maxPlayers > 0 ? Math.round((value / maxPlayers) * 100) : 0;
-            const tooltipText = `${date.toLocaleDateString('pt-BR')}: ${Math.round(value)} jogadores em média (${lotacaoPercent}%)`;
-
+            let tooltipTemplate = translations.heatmap_tooltip || '{date}: {value} jogadores em média ({percent}%)';
+            const tooltipText = tooltipTemplate.replace('{date}', formattedDate).replace('{value}', Math.round(value)).replace('{percent}', lotacaoPercent);
+            
             dayCell.addEventListener('mouseenter', () => {
                 heatmapTooltip.textContent = tooltipText;
                 heatmapTooltip.style.display = 'block';
             });
-            dayCell.addEventListener('mouseleave', () => {
-                heatmapTooltip.style.display = 'none';
-            });
+            dayCell.addEventListener('mouseleave', () => heatmapTooltip.style.display = 'none');
             dayCell.addEventListener('mousemove', (e) => {
                 heatmapTooltip.style.left = `${e.clientX + 15}px`;
                 heatmapTooltip.style.top = `${e.clientY + 15}px`;
-                // ... (sua lógica de tooltip para não sair da tela)
             });
         } else {
-             dayCell.style.backgroundColor = 'rgba(100, 116, 139, 0.1)';
-             dayCell.style.cursor = 'default';
+            // DIAS FUTUROS: Pinta com uma cor escura "desativada".
+            dayCell.style.backgroundColor = 'var(--bg-input)'; // <-- CORREÇÃO!
+            dayCell.style.cursor = 'default';
         }
-        grid.appendChild(dayCell);
+        // -----------------------------------------
+        
+        dayGridContainer.appendChild(dayCell);
     }
 
-    container.appendChild(grid);
+    container.appendChild(weekdayContainer);
+    container.appendChild(dayGridContainer);
 }
 
-
     function formatLastSeen(isoString) {
-        if (!isoString) return '';
-        const now = new Date();
-        const lastSeenDate = new Date(isoString);
-        const diffSeconds = Math.round((now - lastSeenDate) / 1000);
-        
-        if (diffSeconds < 60) return 'agora mesmo';
-        if (diffSeconds < 3600) return `há ${Math.floor(diffSeconds / 60)} min`;
-        if (diffSeconds < 86400) return `há ${Math.floor(diffSeconds / 3600)}h`;
-        
-        if (now.toDateString() === lastSeenDate.toDateString()) {
-            return `hoje às ${lastSeenDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-        }
-
-        const yesterday = new Date(now);
-        yesterday.setDate(now.getDate() - 1);
-        if (yesterday.toDateString() === lastSeenDate.toDateString()) {
-            return `ontem às ${lastSeenDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
-        }
-        
-        return lastSeenDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    if (!isoString) return '';
+    const now = new Date();
+    const lastSeenDate = new Date(isoString);
+    const diffSeconds = Math.round((now - lastSeenDate) / 1000);
+    
+    if (diffSeconds < 60) return translations.time_now || 'agora mesmo';
+    
+    if (diffSeconds < 3600) {
+        let template = translations.time_minutes_ago || 'há {minutes} min';
+        return template.replace('{minutes}', Math.floor(diffSeconds / 60));
     }
+    
+    if (diffSeconds < 86400) {
+        let template = translations.time_hours_ago || 'há {hours}h';
+        return template.replace('{hours}', Math.floor(diffSeconds / 3600));
+    }
+    
+    const timeString = lastSeenDate.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+    if (now.toDateString() === lastSeenDate.toDateString()) {
+        let template = translations.time_today_at || 'hoje às {time}';
+        return template.replace('{time}', timeString);
+    }
+
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    if (yesterday.toDateString() === lastSeenDate.toDateString()) {
+        let template = translations.time_yesterday_at || 'ontem às {time}';
+        return template.replace('{time}', timeString);
+    }
+    
+    return lastSeenDate.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
     
     const editModal = document.getElementById('edit-server-modal');
     const editForm = document.getElementById('edit-server-form');
@@ -1321,7 +1428,7 @@ if (editForm) {
         const newIp = document.getElementById('edit-ip-input').value.trim();
 
         saveButton.disabled = true;
-        saveButton.textContent = 'Verificando...';
+        saveButton.textContent = translations.modal_edit_btn_saving_test || 'Verificando...';
         errorMessageDiv.style.display = 'none';
 
         try {
@@ -1338,7 +1445,7 @@ if (editForm) {
                 }
             }
 
-            saveButton.textContent = 'Salvando...';
+            saveButton.textContent = translations.modal_edit_btn_saving || 'Salvando...';
             // Prepara os dados para salvar (removendo a senha se não for alterada)
             const dataToSave = {
                 custom_name: document.getElementById('edit-name-input').value.trim(),
@@ -1399,7 +1506,7 @@ if (editForm) {
         } finally {
             // Reabilita o botão no final
             saveButton.disabled = false;
-            saveButton.textContent = 'Salvar Alterações';
+            saveButton.textContent = translations.modal_edit_btn_save || 'Salvar Alterações';
         }
     });
 }
@@ -1408,85 +1515,122 @@ if (editForm) {
     if (editModal) editModal.addEventListener('click', (e) => { if (e.target === editModal) hideEditModal(); });
 
     function setupCardActions() {
-        if (!serverListContainer) return;
+    if (!serverListContainer) return;
 
-        let currentHoveredIP = null;
-        let fetchTimeoutId = null;
+    let currentHoveredIP = null;
+    let fetchTimeoutId = null;
 
-        serverListContainer.addEventListener('mousemove', (event) => {
-            const icon = event.target.closest('.server-icon');
-            const ip = icon ? icon.dataset.ip : null;
+    serverListContainer.addEventListener('mousemove', (event) => {
+        const icon = event.target.closest('.server-icon');
+        const ip = icon ? icon.dataset.ip : null;
 
-            if (playerTooltip.classList.contains('visible')) {
-                playerTooltip.style.left = `${event.pageX + 15}px`;
-                playerTooltip.style.top = `${event.pageY + 15}px`;
+        if (playerTooltip.classList.contains('visible')) {
+            playerTooltip.style.left = `${event.pageX + 15}px`;
+            playerTooltip.style.top = `${event.pageY + 15}px`;
+        }
+
+        if (ip && ip !== currentHoveredIP) {
+            currentHoveredIP = ip;
+            clearTimeout(fetchTimeoutId);
+            
+            if (!playerTooltip.classList.contains('visible')) {
+                const title = translations.tooltip_players_title || 'Jogadores Online';
+                const loading = translations.tooltip_players_loading || 'Carregando...';
+                playerTooltip.innerHTML = `<div class="player-tooltip-title">${title}</div><ul class="player-tooltip-list"><li>${loading}</li></ul>`;
+                playerTooltip.classList.add('visible');
             }
 
-            if (ip && ip !== currentHoveredIP) {
-                currentHoveredIP = ip;
-                clearTimeout(fetchTimeoutId);
-                
-                if (!playerTooltip.classList.contains('visible')) {
-                    playerTooltip.innerHTML = '<div class="player-tooltip-title">Jogadores Online</div><ul class="player-tooltip-list"><li>Carregando...</li></ul>';
-                    playerTooltip.classList.add('visible');
-                }
-
-                fetchTimeoutId = setTimeout(() => {
-                    fetch(`/api/servers/${ip}/players`)
-                        .then(res => res.json())
-                        .then(data => {
-                            if (currentHoveredIP === ip) {
-                                const list = playerTooltip.querySelector('.player-tooltip-list');
-                                if (list) {
-                                    if (data.online && data.online.length > 0) {
-                                        list.innerHTML = data.online.map(p => `<li>${p}</li>`).join('');
-                                    } else {
-                                        list.innerHTML = '<li>Nenhum jogador online.</li>';
-                                    }
+            fetchTimeoutId = setTimeout(() => {
+                fetch(`/api/servers/${ip}/players`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (currentHoveredIP === ip) {
+                            const list = playerTooltip.querySelector('.player-tooltip-list');
+                            if (list) {
+                                if (data.online && data.online.length > 0) {
+                                    list.innerHTML = data.online.map(p => `<li>${p}</li>`).join('');
+                                } else {
+                                    const emptyMsg = translations.tooltip_players_empty || 'Nenhum jogador online.';
+                                    list.innerHTML = `<li>${emptyMsg}</li>`;
                                 }
                             }
-                        })
-                        .catch(() => {
-                            if (currentHoveredIP === ip) {
-                                const list = playerTooltip.querySelector('.player-tooltip-list');
-                                if(list) list.innerHTML = '<li>Erro ao buscar.</li>';
-                            }
-                        });
-                }, 200);
+                        }
+                    })
+                    .catch(() => {
+                        if (currentHoveredIP === ip) {
+                            const list = playerTooltip.querySelector('.player-tooltip-list');
+                            const errorMsg = translations.tooltip_players_error || 'Erro ao buscar.';
+                            if(list) list.innerHTML = `<li>${errorMsg}</li>`;
+                        }
+                    });
+            }, 200);
 
-            } else if (!ip && currentHoveredIP) {
-                currentHoveredIP = null;
-                clearTimeout(fetchTimeoutId);
-                playerTooltip.classList.remove('visible');
-            }
-        });
-
-        serverListContainer.addEventListener('click', (event) => {
-            playerTooltip.classList.remove('visible');
-            clearTimeout(fetchTimeoutId);
+        } else if (!ip && currentHoveredIP) {
             currentHoveredIP = null;
+            clearTimeout(fetchTimeoutId);
+            playerTooltip.classList.remove('visible');
+        }
+    });
 
-            const button = event.target.closest('.card-action-btn');
-            if (button) {
-                event.stopPropagation();
-                const action = button.dataset.action;
-                const ip = button.dataset.ip;
+    serverListContainer.addEventListener('click', (event) => {
+        playerTooltip.classList.remove('visible');
+        clearTimeout(fetchTimeoutId);
+        currentHoveredIP = null;
+
+        const button = event.target.closest('.card-action-btn');
+        if (button) {
+            event.stopPropagation();
+            const action = button.dataset.action;
+            const ip = button.dataset.ip;
+            
+            if (action === 'edit') showEditModal(ip);
+            
+            // ---- INÍCIO DO BLOCO CORRIGIDO ----
+            if (action === 'delete') {
+                const title = translations.modal_delete_title || 'Remover Servidor';
+                let message = (translations.modal_delete_message || 'Tem certeza que deseja remover {ip}?').replace('{ip}', ip);
                 
-                if (action === 'edit') showEditModal(ip);
-                if (action === 'delete') showConfirmModal('Remover Servidor', `Tem certeza que deseja remover ${ip}?`, async () => { try { const response = await fetch(`/api/servers/${ip}`, { method: 'DELETE' }); if (response.ok) await fetchAndUpdateServers(); else { const err = await response.json(); alert(`Erro: ${err.detail}`); } } catch (e) { alert("Erro de conexão."); } });
-                if (action === 'pause') fetch(`/api/servers/${ip}/toggle_pause`, { method: 'POST' }).then(res => { if(res.ok) fetchAndUpdateServers() });
-            } else {
-                const card = event.target.closest('.server-card');
-                if (card) {
-                    const serverIp = card.dataset.ip;
-                    const serverObject = allServersCache.find(s => s.ip_servidor === serverIp);
-                    if (serverObject) {
-                        showDetailsView(serverObject);
+                showConfirmModal(title, message, async () => {
+                    // Esta parte estava vazia no seu código. Agora ela tem a lógica de exclusão.
+                    console.log(`[DEBUG] Tentando apagar o servidor com IP: ${ip}`);
+                    try {
+                        const response = await fetch(`/api/servers/${ip}`, { method: 'DELETE' });
+                        
+                        console.log('[DEBUG] Resposta do backend:', response);
+                        console.log(`[DEBUG] Status da resposta: ${response.status}`);
+                        console.log(`[DEBUG] Resposta foi 'ok'? ${response.ok}`);
+
+                        if (response.ok) {
+                            console.log('[DEBUG] A resposta foi OK. Atualizando a lista de servidores...');
+                            await fetchAndUpdateServers();
+                            console.log('[DEBUG] Lista de servidores atualizada.');
+                        } else {
+                            const err = await response.json();
+                            console.error('[DEBUG] Backend retornou um erro:', err);
+                            alert(`Erro ao apagar: ${err.detail}`);
+                        }
+                    } catch (e) {
+                        console.error('[DEBUG] Ocorreu um erro de conexão no fetch:', e);
+                        alert("Erro de conexão ao tentar apagar.");
                     }
+                });
+            }
+            // ---- FIM DO BLOCO CORRIGIDO ----
+
+            if (action === 'pause') fetch(`/api/servers/${ip}/toggle_pause`, { method: 'POST' }).then(res => { if(res.ok) fetchAndUpdateServers() });
+
+        } else {
+            const card = event.target.closest('.server-card');
+            if (card) {
+                const serverIp = card.dataset.ip;
+                const serverObject = allServersCache.find(s => s.ip_servidor === serverIp);
+                if (serverObject) {
+                    showDetailsView(serverObject);
                 }
             }
-        });
-    }
+        }
+    });
+}
 
     let currentSort = { key: 'nome_servidor', direction: 'asc' };
     function applyFilterAndSort() {
@@ -1564,25 +1708,53 @@ if (editForm) {
 
     function setupAddForms() {
         async function processIpList(ips, logElement, form) {
-            logElement.innerHTML = ''; logElement.style.display = 'block';
-            const button = form.querySelector('button'); if (button) button.disabled = true;
-            let successCount = 0, errorCount = 0;
-            for (const [index, ip] of ips.entries()) {
-                const cleanIp = ip.trim(); if (!cleanIp) continue;
-                logElement.innerHTML += `Processando ${index + 1}/${ips.length}: ${cleanIp}... `;
-                try {
-                    const response = await fetch('/api/servers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip: cleanIp }), });
-                    const result = await response.json();
-                    if (response.ok) { logElement.innerHTML += `<span style="color:var(--accent-green);">Sucesso!</span><br>`; successCount++; }
-                    else { logElement.innerHTML += `<span style="color:var(--accent-red);">Falha (${result.detail})</span><br>`; errorCount++; }
-                } catch (error) { logElement.innerHTML += `<span style="color:var(--accent-red);">Erro de conexão</span><br>`; errorCount++; }
-                logElement.scrollTop = logElement.scrollHeight;
+    logElement.innerHTML = ''; 
+    logElement.style.display = 'block';
+    const button = form.querySelector('button'); 
+    if (button) button.disabled = true;
+    
+    let successCount = 0, errorCount = 0;
+    
+    for (const [index, ip] of ips.entries()) {
+        const cleanIp = ip.trim(); 
+        if (!cleanIp) continue;
+
+        // USA A TRADUÇÃO PARA A MENSAGEM DE PROCESSAMENTO
+        let processingMsg = translations.log_processing || 'Processando {index}/{total}: {ip}... ';
+        processingMsg = processingMsg.replace('{index}', index + 1).replace('{total}', ips.length).replace('{ip}', cleanIp);
+        logElement.innerHTML += processingMsg;
+
+        try {
+            const response = await fetch('/api/servers', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ ip: cleanIp }) });
+            const result = await response.json();
+            
+            if (response.ok) {
+                const successMsg = translations.log_success || 'Sucesso!';
+                logElement.innerHTML += `<span style="color:var(--accent-green);">${successMsg}</span><br>`;
+                successCount++;
+            } else {
+                let failureMsg = translations.log_failure || 'Falha ({error})';
+                failureMsg = failureMsg.replace('{error}', result.detail);
+                logElement.innerHTML += `<span style="color:var(--accent-red);">${failureMsg}</span><br>`;
+                errorCount++;
             }
-            logElement.innerHTML += `<hr style="border-color:var(--border-color);margin:12px 0;"><br><b>Concluído!</b> Adicionados: ${successCount}, Falhas: ${errorCount}.`;
-            logElement.scrollTop = logElement.scrollHeight;
-            if (button) button.disabled = false;
-            await fetchAndUpdateServers();
+        } catch (error) {
+            const errorMsg = translations.log_connection_error || 'Erro de conexão';
+            logElement.innerHTML += `<span style="color:var(--accent-red);">${errorMsg}</span><br>`;
+            errorCount++;
         }
+        logElement.scrollTop = logElement.scrollHeight;
+    }
+
+    // USA A TRADUÇÃO PARA O SUMÁRIO
+    let summaryMsg = translations.log_summary || '<b>Concluído!</b> Adicionados: {success}, Falhas: {errorCount}.';
+    summaryMsg = summaryMsg.replace('{success}', successCount).replace('{errorCount}', errorCount);
+    logElement.innerHTML += `<hr style="border-color:var(--border-color);margin:12px 0;"><br>${summaryMsg}`;
+    
+    logElement.scrollTop = logElement.scrollHeight;
+    if (button) button.disabled = false;
+    await fetchAndUpdateServers();
+}
         const singleAddForm = document.getElementById('single-add-form');
         if(singleAddForm) singleAddForm.addEventListener('submit', async (e) => { e.preventDefault(); const ip = document.getElementById('single-ip-input').value.trim(); await processIpList([ip], document.getElementById('single-add-log'), singleAddForm); document.getElementById('single-ip-input').value = ''; });
         const bulkAddForm = document.getElementById('bulk-add-form');
@@ -1628,19 +1800,6 @@ function exportToCsv(filename, rows) {
         document.body.removeChild(link);
     }
 }
-
-
-// --- FUNÇÃO PRINCIPAL DE INICIALIZAÇÃO DA APLICAÇÃO ---
-async function initializeApp() {
-    try {
-        await appCache.init();
-        setupTheme();
-        setupNavigation();
-        setupDashboardControls();
-        setupAddForms();
-        setupCardActions();
-
-        // --- EVENT LISTENERS PARA AS NOVAS FUNCIONALIDADES ---
 
         // 1. Lógica para o botão de resetar o zoom
         const contextualResetBtn = document.getElementById('contextual-reset-zoom-btn');
@@ -1774,52 +1933,44 @@ async function initializeApp() {
         await fetchAndUpdateServers();
         updateIntervalId = setInterval(fetchAndUpdateServers, UPDATE_INTERVAL);
 
-    } catch (error) { 
-        console.error("Erro fatal na inicialização do script:", error); 
-        if(serverListContainer) serverListContainer.innerHTML = '<p class="empty-message">Ocorreu um erro crítico. Verifique o console.</p>'; 
-    }
-}
     const shutdownBtn = document.getElementById('shutdown-button');
 if (shutdownBtn) {
     shutdownBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        
-        // 1. CHAMA O MODAL DE CONFIRMAÇÃO QUE VOCÊ JÁ TEM!
-        showConfirmModal(
-            'Desligar Aplicação', 
-            'Tem certeza que deseja fechar o BlockSpy? O monitoramento será interrompido.', 
-            () => {
-                // Esta função só roda se o usuário clicar em "Confirmar"
 
-                // 2. MANDA O COMANDO DE MORTE PARA O SERVIDOR
-                // Não precisamos esperar a resposta, pois o servidor vai morrer no meio do caminho.
-                fetch('/api/shutdown', { method: 'POST' })
-                    .catch(err => console.error('Isso é esperado: O servidor foi desligado antes de responder.', err));
+        const title = translations.modal_shutdown_title || 'Desligar Aplicação';
+        const message = translations.modal_shutdown_message || 'Tem certeza que deseja fechar o BlockSpy? O monitoramento será interrompido.';
 
-                // 3. TENTA FECHAR A ABA DO NAVEGADOR
-                // Navegadores modernos podem bloquear isso, mas não custa tentar.
-                window.close();
+        showConfirmModal(title, message, () => {
+            // A lógica de desligamento que já estava aqui
+            fetch('/api/shutdown', { method: 'POST' })
+                .catch(err => console.error('Isso é esperado: O servidor foi desligado antes de responder.', err));
 
-                // 4. EXIBE UMA MENSAGEM FINAL DE DESPEDIDA
-                // Isso serve como um "plano B" caso a aba não feche sozinha.
-                setTimeout(() => {
-                    document.body.innerHTML = '<h1 style="text-align:center; padding-top: 40vh; font-family: sans-serif; color: #ccc;">O BlockSpy foi desligado.<br>Você já pode fechar esta aba.</h1>';
-                }, 500); // Meio segundo de espera
-            }
-        );
+            window.close();
+
+            setTimeout(() => {
+                document.body.innerHTML = '<h1 style="text-align:center; padding-top: 40vh; font-family: sans-serif; color: #ccc;">O BlockSpy foi desligado.<br>Você já pode fechar esta aba.</h1>';
+            }, 500);
+        });
+        // ------------------------------------
     });
 }
 function renderEventTimeline(events) {
     const container = document.getElementById('timeline-container');
-    if (!container) {
-        console.error("Elemento da timeline '#timeline-container' não encontrado.");
-        return;
+    if (!container) return;
+
+    const titleElement = container.closest('.card-timeline').querySelector('h2');
+    if (titleElement) {
+        titleElement.textContent = translations.timeline_title || 'Linha do Tempo';
     }
+
     container.innerHTML = '';
     if (!events || events.length === 0) {
-        container.innerHTML = '<p class="empty-message">Nenhum evento registrado recentemente.</p>';
+        const emptyMsg = translations.timeline_no_events || 'Nenhum evento registrado recentemente.';
+        container.innerHTML = `<p class="empty-message">${emptyMsg}</p>`;
         return;
     }
+
     const iconMap = {
         'SERVIDOR_ONLINE': '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>',
         'SERVIDOR_OFFLINE': '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>',
@@ -1828,23 +1979,66 @@ function renderEventTimeline(events) {
         'NOVO_PICO_JOGADORES': '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="7"></circle><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"></polyline></svg>',
         'VERSAO_ALTERADA': '<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="3" x2="6" y2="15"></line><circle cx="18" cy="6" r="3"></circle><circle cx="6" cy="18" r="3"></circle><path d="M18 9a9 9 0 0 1-9 9"></path></svg>'
     };
+
     events.forEach(event => {
         if (!event || !event.timestamp || !event.tipo_evento) return;
         const item = document.createElement('div');
         item.className = 'timeline-item';
         item.dataset.eventType = event.tipo_evento;
+        
         const timestamp = new Date(event.timestamp);
-        if (isNaN(timestamp.getTime())) {
-            console.error("Timestamp inválido recebido no evento:", event);
-            return;
-        }
-        const formattedTime = timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-        const formattedDate = timestamp.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' });
+        if (isNaN(timestamp.getTime())) return;
+
+        const localeCode = currentLangCode === 'en' ? 'en-US' : 'pt-BR';
+        const formattedTime = timestamp.toLocaleTimeString(localeCode, { hour: '2-digit', minute: '2-digit' });
+        const formattedDate = timestamp.toLocaleDateString(localeCode, { day: '2-digit', month: 'short' });
+        
         const icon = iconMap[event.tipo_evento] || '•';
-        const detailsText = event.detalhes || '';
+
+        let detailsText = event.detalhes || '';
+        const detailsOriginal = event.detalhes || ''; // Guarda o texto original
+
+        // ---- LÓGICA DE TRADUÇÃO MAIS SEGURA ----
+        try {
+            switch(event.tipo_evento) {
+                case 'SERVIDOR_ONLINE': {
+                    const match = detailsOriginal.match(/\d+/);
+                    detailsText = (translations.event_server_online || detailsOriginal).replace('{count}', match ? match[0] : '??');
+                    break;
+                }
+                case 'SERVIDOR_OFFLINE':
+                    detailsText = translations.event_server_offline || detailsOriginal;
+                    break;
+                case 'JOGADOR_ENTROU': {
+                    const player = detailsOriginal.match(/'([^']+)'/); // Pega o nome entre aspas simples
+                    detailsText = (translations.event_player_join || detailsOriginal).replace('{player}', player ? player[1] : '??');
+                    break;
+                }
+                case 'JOGADOR_SAIU': {
+                    const player = detailsOriginal.match(/'([^']+)'/);
+                    detailsText = (translations.event_player_leave || detailsOriginal).replace('{player}', player ? player[1] : '??');
+                    break;
+                }
+                case 'NOVO_PICO_JOGADORES': {
+                    const match = detailsOriginal.match(/\d+/);
+                    detailsText = (translations.event_new_peak || detailsOriginal).replace('{count}', match ? match[0] : '??');
+                    break;
+                }
+                case 'VERSAO_ALTERADA': {
+                    const version = detailsOriginal.split("'")[1]; // Pega a versão entre aspas simples
+                    detailsText = (translations.event_version_change || detailsOriginal).replace('{version}', version || '??');
+                    break;
+                }
+            }
+        } catch (e) {
+            console.warn("Não foi possível traduzir o detalhe do evento, usando texto original.", e);
+            detailsText = detailsOriginal; // Se tudo der errado, usa o texto original.
+        }
+        // ----------------------------------------------------
+
         item.innerHTML = `
             <div class="timeline-item-icon">${icon}</div>
-            <div class="timeline-item-timestamp">${formattedDate} às ${formattedTime}</div>
+            <div class="timeline-item-timestamp">${formattedDate}, ${formattedTime}</div>
             <div class="timeline-item-details"></div>
         `;
         item.querySelector('.timeline-item-details').textContent = detailsText;
@@ -1852,214 +2046,50 @@ function renderEventTimeline(events) {
     });
 }
 
-function setupSettingsPage() {
-    // --- 1. SELEÇÃO DE TODOS OS ELEMENTOS DA PÁGINA ---
-    const webhookInput = document.getElementById('discord-webhook-input');
-    const statusToggle = document.getElementById('notify-status-toggle');
-    const peakToggle = document.getElementById('notify-peak-toggle');
-    const milestoneToggle = document.getElementById('notify-milestone-toggle');
-    const firstJoinToggle = document.getElementById('notify-first-join-toggle');
-    const saveButton = document.getElementById('save-settings-btn');
-    const watchlistPlayerInput = document.getElementById('watchlist-player-input');
-    const addWatchlistPlayerBtn = document.getElementById('add-watchlist-player-btn');
-    const watchlistPlayerList = document.getElementById('watchlist-player-list');
-    const webhookErrorMsg = document.getElementById('webhook-error-message');
-    const watchlistErrorMsg = document.getElementById('watchlist-error-message');
-
-    let currentServerForWatchlist = null;
-
-    // --- 2. FUNÇÕES AUXILIARES ---
-    async function loadSettings() {
-        try {
-            const response = await fetch('/api/settings/global');
-            if (!response.ok) {
-                console.error("API de configurações não encontrada (404). O backend (main.py) está com os endpoints corretos?");
-                return;
-            }
-            const settings = await response.json();
-            
-            if (settings && Object.keys(settings).length > 0) {
-                webhookInput.value = settings.discord_webhook_url || '';
-                statusToggle.checked = settings.notificar_online_offline;
-                peakToggle.checked = settings.notificar_pico_jogadores;
-                milestoneToggle.checked = settings.notificar_marcos_lotacao;
-                firstJoinToggle.checked = settings.notificar_primeira_entrada;
-            }
-
-            if (allServersCache.length > 0) {
-                currentServerForWatchlist = allServersCache[0].ip_servidor;
-                const wlResponse = await fetch(`/api/watchlist/${currentServerForWatchlist}`);
-                if (wlResponse.ok) {
-                    const watchlist = await wlResponse.json();
-                    renderWatchlist(watchlist);
-                }
-            }
-        } catch (error) {
-            console.error("Erro ao carregar configurações:", error);
-        }
-    }
-
-    function renderWatchlist(players) {
-    watchlistPlayerList.innerHTML = '';
-    players.forEach(player => {
-        const li = document.createElement('li');
-        
-        // --- INÍCIO DA CORREÇÃO ---
-        // 1. Definimos o nome do jogador para ser usado depois
-        const playerName = player.nome_jogador;
-        li.dataset.playerName = playerName;
-
-        // 2. Definimos a URL da cabeça do jogador
-        const headUrl = `https://minotar.net/avatar/${playerName}/28`;
-
-        // 3. Montamos o HTML correto, agora com as variáveis definidas
-        //    e o botão de remover de volta no lugar.
-        li.innerHTML = `
-            <div class="player-info-left">
-                <img src="${headUrl}" class="player-head" alt="${playerName}" onerror="this.onerror=null; this.src='/static/player-head-cracked.jpg';">
-                <span class="player-name">${playerName}</span>
-            </div>
-            <button class="remove-watchlist-btn" title="Remover Jogador">&times;</button>
-        `;
-        // --- FIM DA CORREÇÃO ---
-
-        watchlistPlayerList.appendChild(li);
-    });
-}
-
-    // --- 3. CONFIGURAÇÃO DOS EVENTOS ---
-    if (saveButton) {
-        saveButton.addEventListener('click', async () => {
-            saveButton.disabled = true;
-            saveButton.textContent = 'Salvando...';
-            const settingsToSave = {
-                discord_webhook_url: webhookInput.value.trim(),
-                notificar_online_offline: statusToggle.checked,
-                notificar_pico_jogadores: peakToggle.checked,
-                notificar_marcos_lotacao: milestoneToggle.checked,
-                notificar_primeira_entrada: firstJoinToggle.checked,
-            };
-            try {
-                const response = await fetch('/api/settings/global', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(settingsToSave)
-                });
-                if (response.ok) {
-                    alert('Configurações salvas com sucesso!');
-                } else {
-                    alert('Falha ao salvar configurações.');
-                }
-            } catch (error) {
-                console.error("Erro ao salvar:", error);
-                alert('Falha ao salvar configurações.');
-            } finally {
-                saveButton.disabled = false;
-                saveButton.textContent = 'Salvar Configurações';
-            }
-        });
-    }
-
-    if (addWatchlistPlayerBtn) {
-        addWatchlistPlayerBtn.addEventListener('click', async () => {
-            const webhookURL = webhookInput.value.trim();
-            if (!webhookURL) {
-                webhookErrorMsg.textContent = 'É necessário configurar uma URL de Webhook primeiro.';
-                webhookErrorMsg.style.display = 'block';
-                return;
-            }
-            const playerName = watchlistPlayerInput.value.trim();
-            if (!playerName) {
-                watchlistErrorMsg.textContent = 'Por favor, digite o nome de um jogador.';
-                watchlistErrorMsg.style.display = 'block';
-                return;
-            }
-            if (!currentServerForWatchlist) {
-                watchlistErrorMsg.textContent = 'Nenhum servidor encontrado para adicionar o jogador.';
-                watchlistErrorMsg.style.display = 'block';
-                return;
-            }
-            try {
-                const response = await fetch(`/api/watchlist/${currentServerForWatchlist}`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nome_jogador: playerName })
-                });
-                if (response.ok) {
-                    watchlistPlayerInput.value = '';
-                    const wlResponse = await fetch(`/api/watchlist/${currentServerForWatchlist}`);
-                    const watchlist = await wlResponse.json();
-                    renderWatchlist(watchlist);
-                } else {
-                    const error = await response.json();
-                    watchlistErrorMsg.textContent = error.detail;
-                    watchlistErrorMsg.style.display = 'block';
-                }
-            } catch (error) {
-                watchlistErrorMsg.textContent = 'Falha ao conectar com o servidor.';
-                watchlistErrorMsg.style.display = 'block';
-            }
-        });
-    }
-
-    if (watchlistPlayerList) {
-        watchlistPlayerList.addEventListener('click', async (e) => {
-            if (e.target && e.target.classList.contains('remove-watchlist-btn')) {
-                const playerLi = e.target.closest('li');
-                const playerName = playerLi.dataset.playerName;
-                if (!playerName || !currentServerForWatchlist) return;
-                if (confirm(`Tem certeza que deseja parar de monitorar ${playerName}?`)) {
-                    try {
-                        const response = await fetch(`/api/watchlist/${currentServerForWatchlist}/${playerName}`, { method: 'DELETE' });
-                        if (response.ok) {
-                            playerLi.remove();
-                        } else {
-                            alert('Falha ao remover jogador.');
-                        }
-                    } catch (error) {
-                        alert('Falha ao remover jogador.');
-                    }
-                }
-            }
-        });
-    }
-
-    if (webhookInput) {
-        webhookInput.addEventListener('input', () => {
-            if (webhookErrorMsg.style.display === 'block') {
-                webhookErrorMsg.style.display = 'none';
-            }
-        });
-    }
-
-    if (watchlistPlayerInput) {
-        watchlistPlayerInput.addEventListener('input', () => {
-            if (watchlistErrorMsg.style.display === 'block') {
-                watchlistErrorMsg.style.display = 'none';
-            }
-        });
-    }
-
-    if (navButtons.settings) {
-        navButtons.settings.addEventListener('click', () => {
-            if(webhookErrorMsg) webhookErrorMsg.style.display = 'none';
-            if(watchlistErrorMsg) watchlistErrorMsg.style.display = 'none';
-            loadSettings();
-        });
-    }
-}
-
 async function initializeApp() {
+    // Primeiro, carrega o idioma para que a variável 'translations' esteja pronta.
+    const initialLang = localStorage.getItem('language') || 'pt';
+    await setLanguage(initialLang);
+
     try {
+        // Inicia os sistemas de base
         await appCache.init();
         setupTheme();
         setupNavigation();
+        
+        // Configura os listeners para cada parte da UI
         setupDashboardControls();
         setupAddForms();
         setupCardActions();
-        setupSettingsPage(); // A chamada para a nova função está aqui
+        setupSettingsPage(); // Esta função agora também cuida dos botões de idioma
+
+        // ---- LÓGICA DO BOTÃO DE DESLIGAR MOVIDA PARA CÁ ----
+        const shutdownBtn = document.getElementById('shutdown-button');
+        if (shutdownBtn) {
+            shutdownBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                
+                const title = translations.modal_shutdown_title || 'Desligar Aplicação';
+                const message = translations.modal_shutdown_message || 'Tem certeza que deseja fechar o BlockSpy?';
+                
+                showConfirmModal(title, message, () => {
+                    fetch('/api/shutdown', { method: 'POST' })
+                        .catch(err => console.error('Isso é esperado: O servidor foi desligado antes de responder.', err));
+
+                    window.close();
+
+                    setTimeout(() => {
+                        document.body.innerHTML = '<h1 style="text-align:center; padding-top: 40vh; font-family: sans-serif; color: #ccc;">O BlockSpy foi desligado.<br>Você já pode fechar esta aba.</h1>';
+                    }, 500);
+                });
+            });
+        }
+        // ----------------------------------------------------
+
+        // Finalmente, busca os dados e inicia o monitoramento
         await fetchAndUpdateServers();
         updateIntervalId = setInterval(fetchAndUpdateServers, UPDATE_INTERVAL);
+        
     } catch (error) {
         console.error("Erro fatal na inicialização do script:", error);
         if (serverListContainer) serverListContainer.innerHTML = '<p class="empty-message">Ocorreu um erro crítico. Verifique o console.</p>';

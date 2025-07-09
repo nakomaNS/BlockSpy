@@ -1336,9 +1336,10 @@ input:checked+.slider:before {
     gap: 12px;              /* Um espaço elegante entre os botões */
 }
 #heatmap-card {
-    height: var(--heatmap-card-height); /* Usa a variável para definir a altura */
     display: flex;
-    flex-direction: column; /* Organiza o título e o heatmap um sobre o outro */
+    flex-direction: column;
+    /* Garante que o card possa se esticar se estiver em um container flex */
+    flex: 1;
 }
 
 /* Centraliza o título "Heatmap" */
@@ -1350,8 +1351,9 @@ input:checked+.slider:before {
 
 /* Garante que o container do gráfico ocupe todo o espaço restante */
 #cal-heatmap {
-    flex-grow: 1;
-    min-height: 0; /* Truque de flexbox para evitar overflow */
+    flex-grow: 1; /* A MÁGICA COMEÇA AQUI: faz este container crescer */
+    display: flex;
+    flex-direction: column;
 }
 
 #details-legend-container {
@@ -1846,4 +1848,95 @@ input:checked+.slider:before {
     color: var(--text-primary);
     font-weight: 600;
     margin-left: auto; /* Empurra o valor para a direita */
+}
+.heatmap-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px; /* Aumentei um pouco o espaçamento */
+    margin-bottom: 8px;
+}
+
+/* O grid principal dos dias (Substitui o antigo .custom-heatmap-grid) */
+.heatmap-day-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    /* FAZ AS LINHAS SE AJUSTAREM AUTOMATICAMENTE AO ESPAÇO VERTICAL */
+    grid-auto-rows: minmax(0, 1fr);
+    gap: 5px; /* Aumentei um pouco o espaçamento */
+    flex-grow: 1; /* FAZ O GRID CRESCER para preencher o #cal-heatmap */
+}
+
+/* Estilo para cada dia da semana no cabeçalho (Simplificado) */
+.heatmap-weekday {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+/* Estilo para cada quadrado de dia (sem alterações, mas incluso por completude) */
+.heatmap-day {
+    /* Removemos o aspect-ratio para permitir que o quadrado se estique */
+    border-radius: 4px;
+    /* Adiciona um tamanho mínimo para não sumir se o card for muito pequeno */
+    min-height: 20px;
+}
+.segmented-control {
+    display: inline-flex;
+    background-color: var(--bg-input);
+    border-radius: 8px;
+    padding: 4px;
+    border: 1px solid var(--border-color);
+}
+
+.segmented-control button {
+    background-color: transparent;
+    border: none;
+    color: var(--text-secondary);
+    padding: 6px 16px;
+    border-radius: 6px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.segmented-control button:not(.active):hover {
+    color: var(--text-primary);
+    background-color: rgba(127, 127, 127, 0.1);
+}
+
+/* ESSA É A REGRA MAIS IMPORTANTE A SER VERIFICADA */
+.segmented-control button.active {
+    background-color: var(--accent-blue);
+    color: #fff;
+    box-shadow: 0 1px 4px rgba(59, 130, 246, 0.2);
+}
+.section-title-with-icon {
+    display: flex; /* A mágica do alinhamento começa aqui */
+    align-items: center; /* Alinha o ícone e o texto verticalmente */
+    gap: 12px; /* Cria um espaço elegante entre o ícone e o texto */
+    color: var(--text-primary); /* Garante a cor correta do texto */
+}
+
+/* Define o tamanho e a cor do ícone SVG dentro do título */
+.section-title-with-icon svg {
+    width: 24px;
+    height: 24px;
+    stroke: var(--text-secondary); /* Usa uma cor secundária para o ícone, fica sutil */
+    flex-shrink: 0; /* Impede que o ícone seja esmagado */
+}
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background-color: var(--bg-input); /* Cria um fundo para o componente */
+    border: 1px solid var(--border-color);
+    padding: 8px 16px; /* Adiciona um espaçamento interno */
+    border-radius: 999px; /* Deixa o container com formato de pílula */
+    width: fit-content;
+}
+
+.theme-switch-wrapper svg {
+    color: var(--text-secondary); /* Cor dos ícones de sol e lua */
 }
